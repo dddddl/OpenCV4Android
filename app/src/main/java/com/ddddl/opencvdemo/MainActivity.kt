@@ -99,7 +99,6 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (resultCode == Activity.RESULT_OK) {
@@ -110,14 +109,7 @@ class MainActivity : AppCompatActivity() {
 //                )
 //                iv.setImageBitmap(bitmap)
 
-                val src = Imgcodecs.imread(RealPathFromUriUtils.getRealPathFromUri(this, imageUri))
-                if (src.empty()) {
-                    Log.e(CV_TAG, "src is empty")
-                    return
-                }
-//                src1 = src
-
-                MatUtil.bitwiseMat {
+                ImageProcess.matchTemplateDemo(RealPathFromUriUtils.getRealPathFromUri(this, imageUri)){
                     iv.setImageBitmap(it)
                 }
             } else if (requestCode == IMAGE_REQUEST_CODE_1) {
