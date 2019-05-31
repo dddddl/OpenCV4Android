@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">OpenCVDemo</string>
+    <string name="invert">invert</string>
 </resources>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/invert"
+          android:title="@string/invert"/>
+    <item android:id="@+id/edge" android:title="edge"/>
+    <item android:id="@+id/boxblur" android:title="boxblur"/>
+    <item android:id="@+id/sobel" android:title="sobel"/>
+</menu>

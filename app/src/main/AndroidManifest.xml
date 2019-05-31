@@ -13,8 +13,9 @@
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
-        <activity android:name=".CameraActivity"
-        >
+        <activity android:name=".DisplayModeActivity">
+        </activity>
+        <activity android:name=".CameraActivity">
         </activity>
         <activity android:name=".MainActivity">
             <intent-filter>
