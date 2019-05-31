@@ -15,6 +15,7 @@ import android.os.Build
 import android.provider.MediaStore
 import android.support.v4.app.ActivityCompat
 import org.opencv.android.Utils
+import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc
 
@@ -50,6 +51,9 @@ class MainActivity : AppCompatActivity() {
         }
         btn_addweighted.setOnClickListener {
             requestPermission(IMAGE_REQUEST_CODE_1)
+        }
+        btn_camera.setOnClickListener {
+            startActivity(Intent(this, CameraActivity::class.java))
         }
     }
 
@@ -109,8 +113,14 @@ class MainActivity : AppCompatActivity() {
 //                )
 //                iv.setImageBitmap(bitmap)
 
-                ImageProcess.matchTemplateDemo(RealPathFromUriUtils.getRealPathFromUri(this, imageUri)){
-                    iv.setImageBitmap(it)
+                val src = Imgcodecs.imread(RealPathFromUriUtils.getRealPathFromUri(this, imageUri))
+
+                FeatureMatchUtil.shiTomasicornerDemo(src) {
+                    val result = Mat()
+                    val bitmap = Bitmap.createBitmap(it.cols(), it.rows(), Bitmap.Config.ARGB_8888)
+                    Imgproc.cvtColor(it, result, Imgproc.COLOR_BGRA2GRAY)
+                    Utils.matToBitmap(result, bitmap)
+                    iv.setImageBitmap(bitmap)
                 }
             } else if (requestCode == IMAGE_REQUEST_CODE_1) {
                 val imageUri = data?.data
