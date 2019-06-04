@@ -13,11 +13,7 @@ cmake_minimum_required(VERSION 3.4.1)
 # You can define multiple libraries, and CMake builds them for you.
 
 # Gradle automatically packages shared libraries with your APK.
-set(CMAKE_VERBOSE_MAKEFILE on)
 set(libs "${CMAKE_SOURCE_DIR}/src/main/jniLibs")
-set(OpenCV_STATIC ON)
-set(OpenCV_DIR D:/opencv-3.4.3-android-sdk/OpenCV-android-sdk/sdk/native/jni)
-find_package(OpenCV REQUIRED)
 include_directories(${CMAKE_SOURCE_DIR}/src/main/cpp)
 include_directories(${CMAKE_SOURCE_DIR}/src/main/cpp/include)
 
@@ -42,6 +38,11 @@ set_target_properties(libopencv_java PROPERTIES
 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11 -fexceptions -frtti")
 
+add_library(
+        pic_fix
+        SHARED
+        src/main/cpp/pic_fix.cpp
+)
 add_library(
         haar_detect
         SHARED
@@ -84,6 +85,15 @@ target_link_libraries( # Specifies the target library.
         )
 target_link_libraries( # Specifies the target library.
         haar_detect
+
+        # Links the target library to the log library
+        # included in the NDK.
+        ${log-lib}
+        opencv_java3
+        libopencv_java
+        )
+target_link_libraries( # Specifies the target library.
+        pic_fix
 
         # Links the target library to the log library
         # included in the NDK.
