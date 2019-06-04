@@ -13,7 +13,20 @@ android {
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        externalNativeBuild {
+            cmake {
+                arguments "-DANDROID_ARM_NEON=TRUE", "-DANDROID_TOOLCHAIN=clang","-DCMAKE_BUILD_TYPE=Release"
+                //'-DANDROID_STL=gnustl_static'
+                cppFlags "-std=c++11","-frtti", "-fexceptions"
+            }
+        }
+        ndk{
+            abiFilters 'armeabi-v7a'
+        }
     }
+
+
     buildTypes {
         release {
             minifyEnabled false
@@ -21,21 +34,22 @@ android {
         }
     }
 
-//    task nativeLibsToJar(type: Jar, description: 'create a jar archive of the native libs') {
-//        destinationDir file("$buildDir/native-libs")
-//        baseName 'native-libs'
-//        from fileTree(dir: 'libs', includes: '**/*.so')
-//        into 'libs/'
-//    }
-//
-//    tasks.withType(JavaCompile) {
-//        compileTask -> compileTask.dependsOn(nativeLibsToJar)
-//    }
+    repositories {
+        flatDir {
+            dirs 'libs'
+        }
+    }
+
+    externalNativeBuild {
+        cmake {
+            path "CMakeLists.txt"
+        }
+    }
+//    sourceSets { main { jni.srcDirs = ['src/main/jni', 'src/main/cpp/'] } }
 }
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-//    implementation fileTree(dir: "$buildDir/native-libs", include: 'native-libs.jar')
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.android.support:appcompat-v7:28.0.0'
     implementation 'com.android.support.constraint:constraint-layout:1.1.3'
@@ -43,4 +57,7 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation project(path: ':openCVLibrary343')
+
+    implementation(name: 'tess-two-9.0.0', ext: 'aar')
+
 }

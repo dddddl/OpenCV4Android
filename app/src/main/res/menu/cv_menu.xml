@@ -5,4 +5,5 @@
     <item android:id="@+id/edge" android:title="edge"/>
     <item android:id="@+id/boxblur" android:title="boxblur"/>
     <item android:id="@+id/sobel" android:title="sobel"/>
+    <item android:id="@+id/facceDetection" android:title="faceDetection"/>
 </menu>
