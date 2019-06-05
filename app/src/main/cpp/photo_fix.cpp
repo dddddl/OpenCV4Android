@@ -18,7 +18,7 @@ using namespace std;
 
 extern "C" {
 JNIEXPORT void JNICALL
-Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_fixpic(JNIEnv *, jobject, jlong addrsrc,
+Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_PhotoFix(JNIEnv *, jobject, jlong addrsrc,
                                                          jlong addrdst) {
 
     Mat &src = *(Mat *) addrsrc;

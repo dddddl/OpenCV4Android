@@ -3,7 +3,6 @@ package com.ddddl.opencvdemo.ui
 import android.content.res.Configuration
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.os.Environment
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
@@ -11,18 +10,11 @@ import android.view.View
 import android.view.WindowManager
 import kotlinx.android.synthetic.main.activity_camera.*
 import org.opencv.android.CameraBridgeViewBase
-import org.opencv.android.InstallCallbackInterface
-import org.opencv.android.LoaderCallbackInterface
-import org.opencv.android.OpenCVLoader
 import org.opencv.imgproc.Imgproc
-import java.io.File
-import android.content.Context
 import com.ddddl.opencvdemo.R
 import com.ddddl.opencvdemo.nativehelper.FaceHelper
 import com.ddddl.opencvdemo.utils.FileUtil
 import org.opencv.core.*
-import org.opencv.objdetect.CascadeClassifier
-import java.io.FileOutputStream
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 

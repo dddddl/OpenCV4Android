@@ -20,8 +20,6 @@ import org.opencv.imgproc.Imgproc
 
 class UtilActivity : AppCompatActivity() {
 
-
-
     private val IMAGE_TYPE = "image/*"
     private val CV_TAG = "CV_TAG"
     private lateinit var bitmap: Bitmap

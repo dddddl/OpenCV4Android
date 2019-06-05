@@ -7,8 +7,6 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
-import android.view.View
-import android.widget.ImageView
 import com.ddddl.opencvdemo.R
 import com.ddddl.opencvdemo.nativehelper.FaceHelper
 import com.ddddl.opencvdemo.utils.ImageSelectUtils
@@ -45,7 +43,7 @@ class InpaintActivity : AppCompatActivity() {
             return
         }
         val dst = Mat(src.size(), src.type())
-        faceHelper.fixpic(src.nativeObjAddr, dst.nativeObjAddr)
+        faceHelper.PhotoFix(src.nativeObjAddr, dst.nativeObjAddr)
 
         val bm = Bitmap.createBitmap(src.cols(), src.rows(), Bitmap.Config.ARGB_8888)
         val result = Mat()

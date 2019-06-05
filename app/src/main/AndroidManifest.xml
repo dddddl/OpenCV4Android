@@ -30,8 +30,6 @@
         </activity>
         <activity android:name=".ui.FaceBeautyActivity">
         </activity>
-        <activity android:name=".ui.OCRActivity">
-        </activity>
         <activity android:name=".ui.UtilActivity">
         </activity>
         <activity android:name=".ui.DisplayModeActivity">

@@ -58,6 +58,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation project(path: ':openCVLibrary343')
 
-    implementation(name: 'tess-two-9.0.0', ext: 'aar')
+//    implementation(name: 'tess-two-9.0.0', ext: 'aar')
 
 }
