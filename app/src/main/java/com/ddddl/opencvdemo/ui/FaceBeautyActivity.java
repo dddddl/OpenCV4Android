@@ -50,6 +50,9 @@ public class FaceBeautyActivity extends AppCompatActivity implements View.OnClic
                 pickUpImage();
                 break;
             case R.id.btn_face:
+                if (fileUri == null) {
+                    return;
+                }
                 new Thread(new Runnable() {
                     @Override
                     public void run() {

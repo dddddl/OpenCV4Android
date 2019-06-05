@@ -33,6 +33,9 @@ class InpaintActivity : AppCompatActivity() {
         }
 
         btn_inpaint.setOnClickListener {
+            if (fileUri == null) {
+                return@setOnClickListener
+            }
             fixPic()
         }
     }
