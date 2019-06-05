@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/drawMat"
+          android:title="drawMat"/>
+    <item android:id="@+id/cvtColor" android:title="cvtColor"/>
+    <item android:id="@+id/blurImage" android:title="blurImage"/>
+    <item android:id="@+id/getMatByteByPixel" android:title="getMatByteByPixel"/>
+    <item android:id="@+id/getMatByteByRow" android:title="getMatByteByRow"/>
+    <item android:id="@+id/getAllMatByte" android:title="getAllMatByte"/>
+    <item android:id="@+id/getBinaryImage" android:title="getBinaryImage"/>
+    <item android:id="@+id/addMat" android:title="addMat"/>
+    <item android:id="@+id/subtractMat" android:title="subtractMat"/>
+    <item android:id="@+id/multiplyMat" android:title="multiplyMat"/>
+    <item android:id="@+id/divideMat" android:title="divideMat"/>
+    <item android:id="@+id/addWeightMat" android:title="addWeightMat"/>
+    <item android:id="@+id/bitwiseMat" android:title="bitwiseMat"/>
+    <item android:id="@+id/blur" android:title="blur"/>
+    <item android:id="@+id/gaussianBlur" android:title="gaussianBlur"/>
+    <item android:id="@+id/medianBlur" android:title="medianBlur"/>
+    <item android:id="@+id/dilate" android:title="dilate"/>
+    <item android:id="@+id/erode" android:title="erode"/>
+    <item android:id="@+id/pyrMeanShiftFiltering" android:title="pyrMeanShiftFiltering"/>
+    <item android:id="@+id/bilateralFilter" android:title="bilateralFilter"/>
+    <item android:id="@+id/edge" android:title="edge"/>
+    <item android:id="@+id/houghLines" android:title="houghLines"/>
+    <item android:id="@+id/houghCircle" android:title="houghCircle"/>
+    <item android:id="@+id/findContours" android:title="findContours"/>
+    <item android:id="@+id/displayHistogram" android:title="displayHistogram"/>
+    <item android:id="@+id/matchTemplateDemo" android:title="matchTemplateDemo"/>
+    <item android:id="@+id/harrisCornerDemo" android:title="harrisCornerDemo"/>
+    <item android:id="@+id/shiTomasicornerDemo" android:title="shiTomasicornerDemo"/>
+</menu>

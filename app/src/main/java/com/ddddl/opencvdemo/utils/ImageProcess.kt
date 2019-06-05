@@ -15,128 +15,70 @@ import org.opencv.core.CvType
 
 object ImageProcess {
 
-    fun blur(filePath: String, process: (Bitmap) -> Unit) {
-
-        val src = Imgcodecs.imread(filePath)
-        if (src.empty()) {
-            return
-        }
-
+    fun blur(src: Mat, process: (Mat) -> Unit) {
         val dst = Mat()
         Imgproc.blur(src, dst, Size(5.0, 5.0), Point(-1.0, -1.0), Core.BORDER_DEFAULT)
 
-        val bm = Bitmap.createBitmap(src.cols(), src.rows(), Bitmap.Config.ARGB_8888)
-        val result = Mat()
-        Imgproc.cvtColor(dst, result, Imgproc.COLOR_BGRA2RGBA)
-        Utils.matToBitmap(result, bm)
-
-        process.invoke(bm)
-
+        process.invoke(dst)
         src.release()
         dst.release()
-        result.release()
     }
 
-    fun gaussianBlur(filePath: String, process: (Bitmap) -> Unit) {
-
-        val src = Imgcodecs.imread(filePath)
-        if (src.empty()) {
-            return
-        }
-
+    fun gaussianBlur(src: Mat, process: (Mat) -> Unit) {
         val dst = Mat()
         Imgproc.GaussianBlur(src, dst, Size(15.0, 15.0), 0.0)
 
-        val bm = Bitmap.createBitmap(src.cols(), src.rows(), Bitmap.Config.ARGB_8888)
-        val result = Mat()
-        Imgproc.cvtColor(dst, result, Imgproc.COLOR_BGRA2RGBA)
-        Utils.matToBitmap(result, bm)
-
-        process.invoke(bm)
-
+        process.invoke(dst)
         src.release()
         dst.release()
-        result.release()
     }
 
-    fun medianBlur(filePath: String, process: (Bitmap) -> Unit) {
-        val src = Imgcodecs.imread(filePath)
-        if (src.empty()) {
-            return
-        }
-
+    fun medianBlur(src: Mat, process: (Mat) -> Unit) {
         val dst = Mat()
         //ksize 为3、5的时候输入图像可以为浮点数或者整型，大于5只能为字节型图像，CV_8UC
         Imgproc.medianBlur(src, dst, 5)
-
-        val bm = Bitmap.createBitmap(src.cols(), src.rows(), Bitmap.Config.ARGB_8888)
-        val result = Mat()
-        Imgproc.cvtColor(dst, result, Imgproc.COLOR_BGRA2RGBA)
-        Utils.matToBitmap(result, bm)
-
-        process.invoke(bm)
-
+        process.invoke(dst)
         src.release()
         dst.release()
-        result.release()
     }
 
 
-    fun filtering(filePath: String, process: (Bitmap) -> Unit) {
-        val src = Imgcodecs.imread(filePath)
-        if (src.empty()) {
-            return
-        }
-
+    fun dilate(src: Mat, process: (Mat) -> Unit) {
         val dst = Mat()
         val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(3.0, 3.0))
-
         Imgproc.dilate(src, dst, kernel) //膨胀 最大替换中心像素
-//        Imgproc.erode(src, dst, kernel) //腐蚀 大小替换中心像素
-
-        val bm = Bitmap.createBitmap(src.cols(), src.rows(), Bitmap.Config.ARGB_8888)
-        val result = Mat()
-        Imgproc.cvtColor(dst, result, Imgproc.COLOR_BGRA2RGBA)
-        Utils.matToBitmap(result, bm)
-
-        process.invoke(bm)
-
+        process.invoke(dst)
         src.release()
         dst.release()
-        result.release()
     }
 
-    fun edgeFilter(filePath: String, process: (Bitmap) -> Unit) {
-        val src = Imgcodecs.imread(filePath)
-        if (src.empty()) {
-            return
-        }
-
+    fun erode(src: Mat, process: (Mat) -> Unit) {
         val dst = Mat()
+        val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(3.0, 3.0))
+        Imgproc.erode(src, dst, kernel) //腐蚀 大小替换中心像素
+        process.invoke(dst)
+        src.release()
+        dst.release()
+    }
 
-//        Imgproc.bilateralFilter(src, dst, 0, 150.0, 15.0)
+    fun pyrMeanShiftFiltering(src: Mat, process: (Mat) -> Unit) {
+        val dst = Mat()
         Imgproc.pyrMeanShiftFiltering(src, dst, 10.0, 50.0)
-
-        val bm = Bitmap.createBitmap(src.cols(), src.rows(), Bitmap.Config.ARGB_8888)
-        val result = Mat()
-        Imgproc.cvtColor(dst, result, Imgproc.COLOR_BGRA2RGBA)
-        Utils.matToBitmap(result, bm)
-
-        process.invoke(bm)
-
+        process.invoke(dst)
         src.release()
         dst.release()
-        result.release()
     }
 
-    fun edge(filePath: String, process: (Bitmap) -> Unit) {
-        val src = Imgcodecs.imread(filePath)
-        if (src.empty()) {
-            return
-        }
-
+    fun bilateralFilter(src: Mat, process: (Mat) -> Unit) {
         val dst = Mat()
+        Imgproc.bilateralFilter(src, dst, 0, 150.0, 15.0)
+        process.invoke(dst)
+        src.release()
+        dst.release()
+    }
 
+    fun edge(src: Mat, process: (Mat) -> Unit) {
+        val dst = Mat()
         val gradx = Mat()
         Imgproc.Sobel(src, gradx, CvType.CV_16S, 1, 0)
 
@@ -146,29 +88,16 @@ object ImageProcess {
         val edges = Mat()
         Imgproc.Canny(gradx, grady, edges, 50.0, 150.0)
         Core.bitwise_and(src, src, dst, edges)
-
-
-        val bm = Bitmap.createBitmap(src.cols(), src.rows(), Bitmap.Config.ARGB_8888)
-        val result = Mat()
-        Imgproc.cvtColor(dst, result, Imgproc.COLOR_BGRA2RGBA)
-        Utils.matToBitmap(result, bm)
-
-        process.invoke(bm)
+        process.invoke(dst)
 
         src.release()
         dst.release()
-        result.release()
         edges.release()
         gradx.release()
         grady.release()
     }
 
-    fun houghLines(filePath: String, process: (Bitmap) -> Unit) {
-        val src = Imgcodecs.imread(filePath)
-        if (src.empty()) {
-            return
-        }
-
+    fun houghLines(src: Mat, process: (Mat) -> Unit) {
         val edges = Mat()
         Imgproc.Canny(src, edges, 50.0, 150.0, 3, true)
 
@@ -198,25 +127,14 @@ object ImageProcess {
             pt2.y = Math.round(y0 - 1000 * (a)).toDouble()
             Imgproc.line(out, pt1, pt2, Scalar(0.0, 0.0, 255.0), 3, Imgproc.LINE_AA, 0)
         }
-
-        val bm = Bitmap.createBitmap(src.cols(), src.rows(), Bitmap.Config.ARGB_8888)
-
-        val result = Mat()
-        Imgproc.cvtColor(out, result, Imgproc.COLOR_BGRA2RGBA)
-        Utils.matToBitmap(result, bm)
-        process.invoke(bm)
+        process.invoke(out)
 
         src.release()
         out.release()
         edges.release()
     }
 
-    fun houghCircle(filePath: String, process: (Bitmap) -> Unit) {
-        val src = Imgcodecs.imread(filePath)
-        if (src.empty()) {
-            return
-        }
-
+    fun houghCircle(src: Mat, process: (Mat) -> Unit) {
         val gray = Mat()
         Imgproc.pyrMeanShiftFiltering(src, gray, 15.0, 80.0)
         Imgproc.cvtColor(src, gray, Imgproc.COLOR_BGRA2GRAY)
@@ -248,25 +166,13 @@ object ImageProcess {
 
         circles.release()
         gray.release()
-
-        val bm = Bitmap.createBitmap(src.cols(), src.rows(), Bitmap.Config.ARGB_8888)
-        val result = Mat()
-        Imgproc.cvtColor(dst, result, Imgproc.COLOR_BGRA2RGBA)
-        Utils.matToBitmap(result, bm)
-        process.invoke(bm)
+        process.invoke(dst)
 
         src.release()
         dst.release()
-        result.release()
-
     }
 
-    fun findContours(filePath: String, process: (Bitmap) -> Unit) {
-        val src = Imgcodecs.imread(filePath)
-        if (src.empty()) {
-            return
-        }
-
+    fun findContours(src: Mat, process: (Mat) -> Unit) {
         val gray = Mat()
         val binary = Mat()
 
@@ -290,26 +196,14 @@ object ImageProcess {
         for (i in contours.indices) {
             Imgproc.drawContours(dst, contours, i, Scalar(0.0, 0.0, 255.0), 2)
         }
-
-        val result = Mat()
-        val bitmap = Bitmap.createBitmap(src.cols(), src.rows(), Bitmap.Config.ARGB_8888)
-        Imgproc.cvtColor(dst, result, Imgproc.COLOR_BGRA2RGBA)
-        Utils.matToBitmap(result, bitmap)
-        process.invoke(bitmap)
-
+        process.invoke(dst)
         src.release()
         dst.release()
-        result.release()
         gray.release()
         binary.release()
     }
 
-    fun displayHistogram(filePath: String, process: (Bitmap) -> Unit) {
-
-        val src = Imgcodecs.imread(filePath)
-        if (src.empty()) {
-            return
-        }
+    fun displayHistogram(src: Mat, process: (Mat) -> Unit) {
         val dst = Mat()
         val gray = Mat()
         Imgproc.cvtColor(src, gray, Imgproc.COLOR_BGR2GRAY)
@@ -343,25 +237,15 @@ object ImageProcess {
             rect.height = y1
             Imgproc.rectangle(dst, rect.tl(), rect.br(), Scalar(15.0, 15.0, 15.0))
         }
-        val result = Mat()
-        val bitmap = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.ARGB_8888)
-        Imgproc.cvtColor(dst, result, Imgproc.COLOR_BGRA2RGBA)
-        Utils.matToBitmap(result, bitmap)
-        process.invoke(bitmap)
+        process.invoke(dst)
         // 释放内存
+        src.release()
         gray.release()
+        hist.release()
     }
 
-    fun matchTemplateDemo(filePath: String, process: (Bitmap) -> Unit) {
-
-        val src = Imgcodecs.imread(filePath)
-        if (src.empty()) {
-            return
-        }
+    fun matchTemplateDemo(src: Mat, tpl: Mat, process: (Mat) -> Unit) {
         val dst = Mat()
-
-        val tpl = Imgcodecs.imread("/sdcard/Pictures/Screenshots/tmpl.jpg")
-
         val height = src.rows() - tpl.rows() + 1
         val width = src.cols() - tpl.cols() + 1
         val result = Mat(height, width, CvType.CV_32FC1)
@@ -395,10 +279,9 @@ object ImageProcess {
         tpl.release()
         result.release()
 
-        val bitmap = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.ARGB_8888)
-        Utils.matToBitmap(dst, bitmap)
-        process.invoke(bitmap)
-
+        process.invoke(dst)
+        src.release()
+        dst.release()
     }
 
 }

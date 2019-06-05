@@ -8,7 +8,7 @@ import org.opencv.imgproc.Imgproc
 
 object MatUtil {
 
-    fun drawMat(iv: ImageView) {
+    fun drawMat(process: (Mat) -> Unit) {
         val src = Mat.zeros(500, 500, CvType.CV_8U)
 
         Imgproc.ellipse(
@@ -43,33 +43,27 @@ object MatUtil {
             src, Point(400.0, 400.0), 50,
             Scalar(255.0, 0.0, 0.0), 2, 8, 0
         )
-        val destbitmap = Bitmap.createBitmap(500, 500, Bitmap.Config.ARGB_8888)
-        Utils.matToBitmap(src, destbitmap)
-        iv.setImageBitmap(destbitmap)
+
+        process.invoke(src)
+        src.release()
     }
 
-    fun cvtColor(bitmap: Bitmap, iv: ImageView) {
-        val src = Mat()
+    fun cvtColor(src: Mat, process: (Mat) -> Unit) {
         val dst = Mat()
-        Utils.bitmapToMat(bitmap, src)
         Imgproc.cvtColor(src, dst, Imgproc.COLOR_BGRA2GRAY)
-        Utils.matToBitmap(dst, bitmap)
-        iv.setImageBitmap(bitmap)
+        process.invoke(dst)
         src.release()
         dst.release()
     }
 
-    fun blurImage(bitmap: Bitmap, iv: ImageView) {
-        val mat = Mat()
-        Utils.bitmapToMat(bitmap, mat)
-        Imgproc.GaussianBlur(mat, mat, Size(15.0, 15.0), 0.0)
-        Utils.matToBitmap(mat, bitmap)
-        iv.setImageBitmap(bitmap)
-        mat.release()
+    fun blurImage(src: Mat, process: (Mat) -> Unit) {
+        Imgproc.GaussianBlur(src, src, Size(15.0, 15.0), 0.0)
+        process.invoke(src)
+        src.release()
     }
 
     //读取每个像素点并修改
-    fun getMatByteByPixel(src: Mat) {
+    fun getMatByteByPixel(src: Mat, process: (Mat) -> Unit) {
 
         val channels = src.channels()
         val width = src.cols()
@@ -98,11 +92,12 @@ object MatUtil {
                 src.put(row, col, data)
             }
         }
-
+        process.invoke(src)
+        src.release()
     }
 
     //一次读取一行的像素点
-    fun getMatByteByRow(src: Mat) {
+    fun getMatByteByRow(src: Mat, process: (Mat) -> Unit) {
         val channels = src.channels()
         val width = src.cols()
         val height = src.rows()
@@ -126,10 +121,12 @@ object MatUtil {
             src.put(row, 0, data)
         }
 
+        process.invoke(src)
+        src.release()
     }
 
     //一次性读取所有像素点
-    fun getAllMatByte(src: Mat) {
+    fun getAllMatByte(src: Mat, process: (Mat) -> Unit) {
         val channels = src.channels()
         val width = src.cols()
         val height = src.rows()
@@ -143,10 +140,12 @@ object MatUtil {
             data[i] = pv.toByte()
         }
         src.put(0, 0, data)
+        process.invoke(src)
+        src.release()
     }
 
     //获取二值图像
-    fun getBinaryImage(src: Mat?, process: (Mat) -> Unit) {
+    fun getBinaryImage(src: Mat, process: (Mat) -> Unit) {
 
         val gray = Mat()
         //转为灰度图像
@@ -170,7 +169,7 @@ object MatUtil {
         var pv = 0
 
         //根据均值进行二值分割
-        val t = mean[0]
+        val t = mean[0].toInt()
         for (i in data.indices) {
             pv = data[i].toInt() and 0xff
             if (pv > t) {
@@ -181,6 +180,8 @@ object MatUtil {
         }
         gray.put(0, 0, data)
         process.invoke(gray)
+        src.release()
+        gray.release()
     }
 
     //加法运算
@@ -195,6 +196,8 @@ object MatUtil {
         Core.add(src, moon, dst)
         process.invoke(dst)
         moon.release()
+        src.release()
+        dst.release()
     }
 
     //减法运算
@@ -209,6 +212,8 @@ object MatUtil {
         Core.subtract(src, moon, dst)
         process.invoke(dst)
         moon.release()
+        src.release()
+        dst.release()
     }
 
     //乘法运算
@@ -223,6 +228,8 @@ object MatUtil {
         Core.multiply(src, moon, dst)
         process.invoke(dst)
         moon.release()
+        src.release()
+        dst.release()
     }
 
     //除法运算
@@ -237,9 +244,11 @@ object MatUtil {
         Core.divide(src, moon, dst)
         process.invoke(dst)
         moon.release()
+        src.release()
+        dst.release()
     }
 
-    fun addWeightMat(src: Mat, src1: Mat, alpha: Double, gamma: Double, process: (Bitmap) -> Unit) {
+    fun addWeightMat(src: Mat, src1: Mat, alpha: Double, gamma: Double, process: (Mat) -> Unit) {
 
         val dst = Mat()
         val cropImage = Mat()
@@ -247,22 +256,14 @@ object MatUtil {
 
         //像素混合 - 基于权重
         Core.addWeighted(src, alpha, cropImage, 1 - alpha, gamma, dst)
-
-        //转换为Bitmap
-        val bm = Bitmap.createBitmap(src.cols(), src.rows(), Bitmap.Config.ARGB_8888)
-        val result = Mat()
-        Imgproc.cvtColor(dst, result, Imgproc.COLOR_BGRA2RGBA)
-        Utils.matToBitmap(result, bm)
-
-        process.invoke(bm)
+        process.invoke(dst)
 
         src1.release()
         dst.release()
         cropImage.release()
-        result.release()
     }
 
-    fun bitwiseMat(process: (Bitmap) -> Unit) {
+    fun bitwiseMat(process: (Mat) -> Unit) {
         //创建图像
         val src1 = Mat.zeros(400, 400, CvType.CV_8UC3)
         val src2 = Mat(400, 400, CvType.CV_8UC3)
@@ -303,12 +304,7 @@ object MatUtil {
         dst1.release()
         dst2.release()
         dst3.release()
-
-        val bm = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.ARGB_8888)
-        val result = Mat()
-        Imgproc.cvtColor(dst, result, Imgproc.COLOR_BGRA2RGBA)
-        Utils.matToBitmap(result, bm)
-        process.invoke(bm)
+        process.invoke(dst)
     }
 
 }
