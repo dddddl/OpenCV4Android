@@ -20,10 +20,6 @@ import com.ddddl.opencvdemo.R
 import com.ddddl.opencvdemo.nativehelper.FaceHelper
 import com.ddddl.opencvdemo.utils.ImageSelectUtils
 import kotlinx.android.synthetic.main.activity_inpaint.*
-import me.kareluo.imaging.IMGEditActivity
-import me.kareluo.imaging.IMGGalleryActivity
-import me.kareluo.imaging.gallery.model.IMGChooseMode
-import me.kareluo.imaging.gallery.model.IMGImageInfo
 import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.imgcodecs.Imgcodecs
@@ -184,37 +180,9 @@ class InpaintActivity : AppCompatActivity() {
         startActivityForResult(Intent.createChooser(intent, "图像选择..."), REQUEST_CAPTURE_IMAGE)
     }
 
-    private fun onChooseImages(images: List<IMGImageInfo>?) {
-        val image = images?.get(0)
-        if (image != null) {
-//            val f = File(ImageSelectUtils.getRealPath(image.uri, applicationContext))
-            fileUri = image.uri
-
-            iv.setImageURI(image.uri)
-            mImageFile = File(cacheDir, UUID.randomUUID().toString() + ".jpg")
-
-            startActivityForResult(
-                Intent(this, IMGEditActivity::class.java)
-                    .putExtra(IMGEditActivity.EXTRA_IMAGE_URI, image.uri)
-                    .putExtra(IMGEditActivity.EXTRA_IMAGE_SAVE_PATH, mImageFile?.absolutePath),
-                REQ_IMAGE_EDIT
-            )
-        }
-    }
-
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         when (requestCode) {
-            REQ_IMAGE_CHOOSE -> {
-                if (resultCode == Activity.RESULT_OK) {
-                    onChooseImages(IMGGalleryActivity.getImageInfos(data))
-                }
-            }
-            REQ_IMAGE_EDIT -> {
-                if (resultCode == Activity.RESULT_OK) {
-                    iv.setImageURI(Uri.fromFile(mImageFile))
-                }
-            }
             REQUEST_CAPTURE_IMAGE -> {
                 if (resultCode == Activity.RESULT_OK) {
                     if (data != null) {

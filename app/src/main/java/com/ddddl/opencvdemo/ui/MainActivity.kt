@@ -11,10 +11,6 @@ import android.widget.ArrayAdapter
 import android.widget.ListAdapter
 import com.ddddl.opencvdemo.R
 
-const val REQ_IMAGE_EDIT = 1
-
-const val REQ_IMAGE_CHOOSE = 2
-
 class MainActivity : AppCompatActivity() {
 
     companion object {
@@ -24,7 +20,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val strs = arrayOf("utils", "display", "face", "inpaint", "cutview","gallery")
+    private val strs = arrayOf("utils", "display", "face", "inpaint")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,12 +40,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 3 -> {
                     startActivity(Intent(this, InpaintActivity::class.java))
-                }
-                4 -> {
-                    startActivity(Intent(this, CutViewActivity::class.java))
-                }
-                5 -> {
-//                    startActivity(Intent(this, GallerySampleActivity::class.java))
                 }
             }
         }

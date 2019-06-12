@@ -41,9 +41,8 @@
             android:layout_height="match_parent"
             android:background="#999"
             android:layout_marginTop="100dp"
-            app:actualImageScaleType="centerInside"
             app:layout_constraintEnd_toEndOf="parent"
-            app:viewAspectRatio="1"/>
+            />
 
     <com.github.chrisbanes.photoview.CutView
             android:id="@+id/cutview"

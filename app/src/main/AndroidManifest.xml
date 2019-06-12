@@ -30,8 +30,6 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             tools:replace="android:appComponentFactory">
-        <activity android:name=".ui.CutViewActivity">
-        </activity>
         <activity android:name=".ui.InpaintActivity">
         </activity>
         <activity android:name=".ui.FaceBeautyActivity">
