@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-                xmlns:tools="http://schemas.android.com/tools"
+                xmlns:tools="http://schemas.android.com/tools" xmlns:app="http://schemas.android.com/apk/res-auto"
                 android:id="@+id/activity_measure_operations"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -20,11 +20,36 @@
             android:layout_alignParentTop="true"
             android:id="@+id/btn_inpaint"/>
 
-    <ImageView
-            android:layout_width="400dp"
-            android:layout_height="250dp"
-            android:scaleType="fitXY"
-            android:layout_below="@id/btn_inpaint"
-            android:src="@drawable/lena"
-            android:id="@+id/iv"/>
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="修复范围选择"
+            android:layout_toRightOf="@id/btn_inpaint"
+            android:layout_alignParentTop="true"
+            android:id="@+id/btn_cut"/>
+    <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="修复颜色"
+            android:layout_toRightOf="@id/btn_cut"
+            android:layout_alignParentTop="true"
+            android:id="@+id/btn_color"/>
+
+    <com.github.chrisbanes.photoview.PhotoView
+            android:id="@+id/iv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#999"
+            android:layout_marginTop="100dp"
+            app:actualImageScaleType="centerInside"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:viewAspectRatio="1"/>
+
+    <com.github.chrisbanes.photoview.CutView
+            android:id="@+id/cutview"
+            android:layout_width="wrap_content"
+            android:layout_marginTop="100dp"
+            android:layout_height="wrap_content"
+            android:visibility="gone"
+    />
 </RelativeLayout>

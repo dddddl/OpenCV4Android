@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools"
           package="com.ddddl.opencvdemo">
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
@@ -20,12 +21,17 @@
             android:required="false"/>
 
     <application
+            android:name=".OpenCVApplication"
             android:allowBackup="true"
+            android:appComponentFactory=""
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
             android:supportsRtl="true"
-            android:theme="@style/AppTheme">
+            android:theme="@style/AppTheme"
+            tools:replace="android:appComponentFactory">
+        <activity android:name=".ui.CutViewActivity">
+        </activity>
         <activity android:name=".ui.InpaintActivity">
         </activity>
         <activity android:name=".ui.FaceBeautyActivity">
@@ -36,7 +42,7 @@
         </activity>
         <activity android:name=".FdActivity">
         </activity>
-        <activity android:name=".ui.CameraActivity">
+        <activity android:name=".ui.ImageEditSampleActivity">
         </activity>
         <activity android:name=".ui.MainActivity">
             <intent-filter>
@@ -45,6 +51,9 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity android:name=".ui.GallerySampleActivity"/>
+        <activity android:name=".ui.CustomGalleryActivity"/>
+        <activity android:name="me.kareluo.imaging.IMGGalleryActivity"/>
     </application>
 
 </manifest>

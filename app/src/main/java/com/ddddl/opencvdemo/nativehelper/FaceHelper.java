@@ -8,5 +8,7 @@ public class FaceHelper {
 
     public native void beautySkinFilter(long srcAddress, long dstAddress, float sigma, boolean blur);
 
-    public native void PhotoFix(long srcAddress,long dstAddress);
+    public native void PhotoFix(long srcAddress, long dstAddress, int dstColor, int[] cutArr);
+
+    public native int drawRect(long srcAddress, int[] cutArr);
 }

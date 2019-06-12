@@ -9,7 +9,9 @@
           <set>
             <option value="$PROJECT_DIR$" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/image" />
             <option value="$PROJECT_DIR$/openCVLibrary343" />
+            <option value="$PROJECT_DIR$/photoview-2.14" />
           </set>
         </option>
         <option name="resolveModulePerSourceSet" value="false" />
