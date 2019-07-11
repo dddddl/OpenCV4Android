@@ -38,8 +38,10 @@ public class FaceBeautyActivity extends AppCompatActivity implements View.OnClic
 
         Button selectBtn = (Button) this.findViewById(R.id.select_image_btn);
         Button btnface = (Button) this.findViewById(R.id.btn_face);
+        Button btnSegmentation = (Button) this.findViewById(R.id.btn_segmentation);
         selectBtn.setOnClickListener(this);
         btnface.setOnClickListener(this);
+        btnSegmentation.setOnClickListener(this);
     }
 
     @Override
@@ -64,9 +66,46 @@ public class FaceBeautyActivity extends AppCompatActivity implements View.OnClic
                     }
                 }).start();
                 break;
+            case R.id.btn_segmentation:
+                if (fileUri == null) {
+                    return;
+                }
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        segmentation();
+                    }
+                }).start();
+                break;
             default:
                 break;
         }
+    }
+
+    private void segmentation() {
+        Mat src = Imgcodecs.imread(fileUri.getPath());
+        if (src.empty()) {
+            return;
+        }
+        Mat dst = new Mat(src.size(), src.type());
+        faceHelper.segmentation(src.getNativeObjAddr(),dst.getNativeObjAddr());
+        final Bitmap bm = Bitmap.createBitmap(src.cols(), src.rows(), Bitmap.Config.ARGB_8888);
+//        Mat result = new Mat();
+//        Imgproc.cvtColor(dst, result, Imgproc.COLOR_BGR2RGBA);
+        Utils.matToBitmap(dst, bm);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                // show
+                ImageView iv = (ImageView) FaceBeautyActivity.this.findViewById(R.id.chapter8_imageView);
+                iv.setImageBitmap(bm);
+            }
+        });
+
+        // release memory
+        src.release();
+        dst.release();
+//        result.release();
     }
 
     public void Integral_Image_Demo() throws FileNotFoundException {

@@ -11,14 +11,15 @@
 #include <android/log.h>
 
 #define  LOG_TAG    "MYHAARDETECTION"
-
 #define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 #define  LOGW(...)  __android_log_print(ANDROID_LOG_WARN,LOG_TAG,__VA_ARGS__)
 #define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG,LOG_TAG,__VA_ARGS__)
 #define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
+#define zoom 3 // 缩放因子, 将大图像缩小 n 倍显示
 
 using namespace cv;
 using namespace std;
+
 
 extern "C" {
 
@@ -38,6 +39,21 @@ float get_block_sqrt_sum(Mat &sum, int x1, int y1, int x2, int y2, int i) {
     float br = sum.ptr<float>(y2)[x2 * 3 + i];// at<Vec3f>(y2, x2)[i];
     float var = (br - bl - tr + tl);
     return var;
+}
+
+
+// 填充Holes
+void fillHole(const Mat srcBw, Mat &dstBw) {
+    Size m_Size = srcBw.size();
+    Mat Temp = Mat::zeros(m_Size.height + 2, m_Size.width + 2, srcBw.type());//延展图像
+    srcBw.copyTo(Temp(Range(1, m_Size.height + 1), Range(1, m_Size.width + 1)));
+
+    floodFill(Temp, Point(0, 0), Scalar(255));
+
+    Mat cutImg;//裁剪延展的图像
+    Temp(Range(1, m_Size.height + 1), Range(1, m_Size.width + 1)).copyTo(cutImg);
+
+    dstBw = srcBw | (~cutImg);
 }
 
 CascadeClassifier face_detector;
@@ -65,6 +81,46 @@ Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_faceDetection(JNIEnv *, jobjec
     }
 
 }
+
+JNIEXPORT void JNICALL
+Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_segmentation(JNIEnv *, jobject, jlong addrsrc, jlong addrdst) {
+
+    Mat &src = *(Mat *) addrsrc;
+    Mat &dst = *(Mat *) addrdst;
+
+    cvtColor(src, src, COLOR_BGR2GRAY);
+    Mat temp;
+    temp = src;
+    LOGE("segmentation", "将图片转为灰度图");
+
+    Mat edge;
+    blur(src, edge, Size(3, 3));
+    Canny(src, edge, 150, 100, 3);
+    temp = edge;
+    LOGE("segmentation", "canny算子边缘检测");
+
+    Mat element = getStructuringElement(MORPH_RECT, Size(3, 3));
+    for (int i = 0; i < 3; ++i) {
+        dilate(edge, edge, element);
+    }
+    temp = edge;
+    LOGE("segmentation", "膨胀操作, 填充边缘缝隙");
+
+    for (int i = 0; i < 10; i++) // 填充10次
+    {
+        fillHole(edge, edge);
+    }
+//    dst = edge;
+    LOGE("segmentation Holes填充图", "");
+
+    inpaint(src, edge, dst, 5, INPAINT_TELEA);
+    LOGE("segmentation inpaint", "");
+
+    edge.release();
+    temp.release();
+}
+
+
 
 JNIEXPORT void JNICALL
 Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_beautySkinFilter(JNIEnv *, jobject, jlong addrsrc, jlong addrdst,

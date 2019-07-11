@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.INTERNET"/>
 
     <uses-feature
             android:name="android.hardware.camera"
@@ -40,8 +41,6 @@
         </activity>
         <activity android:name=".FdActivity">
         </activity>
-        <activity android:name=".ui.ImageEditSampleActivity">
-        </activity>
         <activity android:name=".ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -49,9 +48,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".ui.GallerySampleActivity"/>
-        <activity android:name=".ui.CustomGalleryActivity"/>
-        <activity android:name="me.kareluo.imaging.IMGGalleryActivity"/>
+
     </application>
 
 </manifest>

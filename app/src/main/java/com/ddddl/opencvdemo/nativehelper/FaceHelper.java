@@ -11,4 +11,6 @@ public class FaceHelper {
     public native void PhotoFix(long srcAddress, long dstAddress, int dstColor, int[] cutArr);
 
     public native int drawRect(long srcAddress, int[] cutArr);
+
+    public native int segmentation(long srcAddress, long dstAddress);
 }

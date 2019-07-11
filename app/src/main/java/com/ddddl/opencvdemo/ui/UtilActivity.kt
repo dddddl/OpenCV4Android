@@ -13,10 +13,8 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import com.ddddl.opencvdemo.R
-import com.ddddl.opencvdemo.utils.FeatureMatchUtil
-import com.ddddl.opencvdemo.utils.ImageProcess
-import com.ddddl.opencvdemo.utils.MatUtil
-import com.ddddl.opencvdemo.utils.RealPathFromUriUtils
+import com.ddddl.opencvdemo.ui.baidu.BodyUtil
+import com.ddddl.opencvdemo.utils.*
 import kotlinx.android.synthetic.main.activity_util.*
 import org.opencv.android.Utils
 import org.opencv.core.Mat
@@ -256,6 +254,16 @@ class UtilActivity : AppCompatActivity() {
                 FeatureMatchUtil.shiTomasicornerDemo(src) {
                     loadBitmap(it)
                 }
+            }
+            R.id.bodySeq -> {
+                Thread{
+                    val pathName = ImageSelectUtils.getRealPath(imageUri,this)
+                    val bodyBean = BodyUtil.bodySeg(pathName)
+                    val bodyBitmap = BodyUtil.convert(bodyBean?.labelmap!!,bitmap.width,bitmap.height,bitmap)
+                    runOnUiThread{
+                        iv.setImageBitmap(bodyBitmap)
+                    }
+                }.start()
             }
         }
 

@@ -33,6 +33,17 @@ string Int_to_String(int n) {
 }
 
 JNIEXPORT void JNICALL
+Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_MaskPhoto(JNIEnv *env, jobject, jlong addrsrc,
+                                                            jlong addrdst, jlong addmask) {
+    Mat &src = *(Mat *) addrsrc;
+    Mat &dst = *(Mat *) addrdst;
+    Mat &mask = *(Mat *) addmask;
+
+
+}
+
+
+JNIEXPORT void JNICALL
 Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_PhotoFix(JNIEnv *env, jobject, jlong addrsrc,
                                                            jlong addrdst, jint dstColor, jintArray rectArray) {
 
@@ -59,6 +70,9 @@ Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_PhotoFix(JNIEnv *env, jobject,
     //通过阈值处理生成Mask
     if (dstColor > 240) {
         threshold(imageGray, imageMask, 240, 255, CV_THRESH_BINARY);
+    } else if (dstColor <= 10) {
+        threshold(imageGray, imageGray, 10, 255, CV_THRESH_TOZERO_INV);
+        threshold(imageGray, imageMask, 0, 255, CV_THRESH_BINARY);
     } else {
         threshold(imageGray, imageGray, dstColor + 5, 255, CV_THRESH_TOZERO_INV);
         threshold(imageGray, imageMask, dstColor - 5, 255, CV_THRESH_BINARY);
