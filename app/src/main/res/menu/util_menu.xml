@@ -2,7 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@+id/drawMat"
           android:title="drawMat"/>
-    <item android:id="@+id/bodySeq" android:title="百度人像分离"/>
+    <!--<item android:id="@+id/bodySeq" android:title="百度人像分离"/>-->
+    <item android:id="@+id/multiply" android:title="S变换"/>
+    <item android:id="@+id/magnifyGlass" android:title="凸透镜"/>
+    <item android:id="@+id/compressGlass" android:title="凹透镜"/>
     <item android:id="@+id/cvtColor" android:title="cvtColor"/>
     <item android:id="@+id/blurImage" android:title="blurImage"/>
     <item android:id="@+id/getMatByteByPixel" android:title="getMatByteByPixel"/>

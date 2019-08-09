@@ -31,6 +31,8 @@
             android:supportsRtl="true"
             android:theme="@style/AppTheme"
             tools:replace="android:appComponentFactory">
+        <activity android:name=".ui.MirrorActivity">
+        </activity>
         <activity android:name=".ui.InpaintActivity">
         </activity>
         <activity android:name=".ui.FaceBeautyActivity">
@@ -41,6 +43,7 @@
         </activity>
         <activity android:name=".FdActivity">
         </activity>
+        <activity android:name=".mace.SegmentActivity"/>
         <activity android:name=".ui.MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
@@ -48,7 +51,6 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
     </application>
 
 </manifest>

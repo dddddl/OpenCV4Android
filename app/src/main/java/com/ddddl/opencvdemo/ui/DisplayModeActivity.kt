@@ -17,6 +17,9 @@ import com.ddddl.opencvdemo.utils.FileUtil
 import org.opencv.core.*
 import org.opencv.core.CvType
 import org.opencv.core.Mat
+import org.opencv.imgcodecs.Imgcodecs
+import org.opencv.photo.Photo
+import kotlin.math.sqrt
 
 
 class DisplayModeActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraViewListener2,
@@ -136,6 +139,16 @@ class DisplayModeActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraVi
             5 -> {
                 helper.faceDetection(frame.nativeObjAddr)
             }
+            6 -> {
+                Imgproc.cvtColor(frame, frame, Imgproc.COLOR_RGBA2BGR)
+                helper.magnifyGlass(frame.nativeObjAddr)
+                Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2RGBA)
+            }
+            7 -> {
+                Imgproc.cvtColor(frame, frame, Imgproc.COLOR_RGBA2BGR)
+                helper.compressGlass(frame.nativeObjAddr)
+                Imgproc.cvtColor(frame, frame, Imgproc.COLOR_BGR2RGBA)
+            }
             else -> {
 
             }
@@ -164,6 +177,12 @@ class DisplayModeActivity : AppCompatActivity(), CameraBridgeViewBase.CvCameraVi
             }
             R.id.facceDetection -> {
                 option = 5
+            }
+            R.id.magnifyGlass -> {
+                option = 6
+            }
+            R.id.compressGlass -> {
+                option = 7
             }
             else -> {
                 option = 0

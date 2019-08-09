@@ -1,9 +1,6 @@
 package com.ddddl.opencvdemo.utils
 
-import android.graphics.Bitmap
-import org.opencv.android.Utils
 import org.opencv.core.*
-import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
 import org.opencv.core.Scalar
 import org.opencv.core.Core
@@ -11,6 +8,7 @@ import org.opencv.core.MatOfFloat
 import org.opencv.core.MatOfInt
 import org.opencv.core.Mat
 import org.opencv.core.CvType
+import org.opencv.photo.Photo
 
 
 object ImageProcess {
@@ -26,7 +24,7 @@ object ImageProcess {
 
     fun gaussianBlur(src: Mat, process: (Mat) -> Unit) {
         val dst = Mat()
-        Imgproc.GaussianBlur(src, dst, Size(15.0, 15.0), 0.0)
+        Imgproc.GaussianBlur(src, dst, Size(3.0, 3.0), 3.0, 3.0)
 
         process.invoke(dst)
         src.release()
@@ -45,8 +43,10 @@ object ImageProcess {
 
     fun dilate(src: Mat, process: (Mat) -> Unit) {
         val dst = Mat()
-        val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(3.0, 3.0))
+        val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(5.0, 5.0))
         Imgproc.dilate(src, dst, kernel) //膨胀 最大替换中心像素
+        Imgproc.dilate(dst, dst, kernel) //膨胀 最大替换中心像素
+        Imgproc.dilate(dst, dst, kernel) //膨胀 最大替换中心像素
         process.invoke(dst)
         src.release()
         dst.release()
@@ -54,7 +54,16 @@ object ImageProcess {
 
     fun erode(src: Mat, process: (Mat) -> Unit) {
         val dst = Mat()
-        val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(3.0, 3.0))
+        val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(5.0, 5.0))
+        Imgproc.erode(src, dst, kernel) //腐蚀 大小替换中心像素
+        process.invoke(dst)
+        src.release()
+        dst.release()
+    }
+
+    fun erode(src: Mat, size: Double, process: (Mat) -> Unit) {
+        val dst = Mat()
+        val kernel = Imgproc.getStructuringElement(Imgproc.MORPH_RECT, Size(size, size))
         Imgproc.erode(src, dst, kernel) //腐蚀 大小替换中心像素
         process.invoke(dst)
         src.release()
@@ -172,6 +181,101 @@ object ImageProcess {
         dst.release()
     }
 
+    fun inPaint(original: Mat, mask: Mat, process: (Mat) -> Unit) {
+
+        Imgproc.cvtColor(original, original, Imgproc.COLOR_BGRA2BGR)
+
+        val gray = Mat()
+        Imgproc.cvtColor(mask, gray, Imgproc.COLOR_RGBA2GRAY)
+
+        dilate(gray) { dilate ->
+            val dst = Mat(original.size(), original.type())
+            Photo.inpaint(original, dilate, dst, 5.0, Photo.INPAINT_TELEA)
+            process.invoke(dst)
+            dst.release()
+            dilate.release()
+        }
+        original.release()
+        mask.release()
+        gray.release()
+    }
+
+    fun getBackground(original: Mat, overlayMat: Mat): Mat {
+        val gray = Mat()
+        Imgproc.cvtColor(overlayMat, gray, Imgproc.COLOR_RGBA2GRAY)
+        val background = Mat(original.size(), CvType.CV_8UC3, Scalar(255.0, 255.0, 255.0))
+
+        erode(gray, 10.0) { erode ->
+            Imgproc.cvtColor(original, original, Imgproc.COLOR_RGBA2BGR)
+            original.copyTo(background, erode)
+            erode.release()
+        }
+        overlayMat.release()
+        original.release()
+        gray.release()
+        return background
+    }
+
+    fun getForeground(original: Mat, overlayMat: Mat): Pair<Mat, Rect> {
+        val gray = Mat()
+        Imgproc.cvtColor(overlayMat, gray, Imgproc.COLOR_RGBA2GRAY)
+        var foregroundMat = Mat()
+        var rect = Rect()
+        erode(gray) {
+            gaussianBlur(it) { blurMat ->
+                val foreground = Mat(original.size(), CvType.CV_8UC4, Scalar(0.0, 0.0, 0.0, 0.0))
+                Imgproc.cvtColor(original, original, Imgproc.COLOR_RGBA2BGRA)
+                original.copyTo(foreground, blurMat)
+
+                val pair = findContours(blurMat)
+                val contours = pair.first
+                val j = pair.second
+                rect = Imgproc.boundingRect(contours[j])
+                foregroundMat = foreground.submat(rect)
+                contours.clear()
+                original.release()
+                blurMat.release()
+                it.release()
+            }
+            overlayMat.release()
+            gray.release()
+        }
+        return Pair(foregroundMat, rect)
+    }
+
+    private fun findContours(
+        grayMat: Mat,
+        orginal: Mat? = null,
+        draw: Boolean = false
+    ): Pair<ArrayList<MatOfPoint>, Int> {
+        val contours = ArrayList<MatOfPoint>()
+        val hierarchy = Mat()
+
+        Imgproc.findContours(
+            grayMat,
+            contours,
+            hierarchy,
+            Imgproc.RETR_TREE,
+            Imgproc.CHAIN_APPROX_SIMPLE,
+            Point(0.0, 0.0)
+        )
+
+        var temp: Double = 0.0
+        var j = 0
+        for (i in contours.indices) {
+            val area = Imgproc.contourArea(contours[i])
+            if (area > temp) {
+                temp = area
+                j = i
+            }
+            if (draw) {
+                Imgproc.drawContours(orginal, contours, i, Scalar(255.0), 1)
+            }
+        }
+        hierarchy.release()
+        return Pair(contours, j)
+    }
+
     fun findContours(src: Mat, process: (Mat) -> Unit) {
         val gray = Mat()
         val binary = Mat()
@@ -282,6 +386,53 @@ object ImageProcess {
         process.invoke(dst)
         src.release()
         dst.release()
+    }
+
+    fun hahaMirror(src: Mat, type: Int, process: (Mat) -> Unit) {
+        val channels = src.channels()
+        val width = src.cols()
+        val height = src.rows()
+
+        val colsByte = ByteArray(channels * width)
+        val dataByte = ByteArray(channels)
+        var b = 0
+        var g = 0
+        var r = 0
+
+        val centerX = width / 2
+        val centerY = height / 2
+        val R = Math.sqrt((width * width + height * height).toDouble()) / 2 //直接关系到放大的力度,与R成正比;
+
+        for (row in 0 until height) {
+            src.get(row, 0, colsByte)
+            for (col in 0 until width) {
+
+                val tX = col - centerX
+                val tY = row - centerY
+                val distance = Math.sqrt((tX * tX + tY * tY).toDouble())
+
+                if (distance < R) {
+
+                    val newX = ((row - centerX) * distance / R).toInt() + centerX
+                    val newY = ((col - centerY) * distance / R).toInt() + centerY
+
+                    src.get(newX * channels, newY, dataByte)
+
+                    b = dataByte[0].toInt() and 0xff
+                    g = dataByte[1].toInt() and 0xff
+                    r = dataByte[2].toInt() and 0xff
+
+                    colsByte[channels * col + 0] = b.toByte()
+                    colsByte[channels * col + 1] = g.toByte()
+                    colsByte[channels * col + 2] = r.toByte()
+                }
+            }
+            src.put(row, 0, colsByte)
+
+        }
+
+        process.invoke(src)
+        src.release()
     }
 
 }

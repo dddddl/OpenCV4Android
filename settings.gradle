@@ -1,2 +1,2 @@
-include ':app', ':photoview-2.14'
+include ':app', ':photoview-2.14', ':macelibrary'
 include ':openCVLibrary343'

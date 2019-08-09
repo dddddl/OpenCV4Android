@@ -10,16 +10,11 @@
 #include <string>
 #include <android/log.h>
 
-#define  LOG_TAG    "MYHAARDETECTION"
-#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
-#define  LOGW(...)  __android_log_print(ANDROID_LOG_WARN,LOG_TAG,__VA_ARGS__)
-#define  LOGD(...)  __android_log_print(ANDROID_LOG_DEBUG,LOG_TAG,__VA_ARGS__)
-#define  LOGI(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 #define zoom 3 // 缩放因子, 将大图像缩小 n 倍显示
+#define pi 3.1415926
 
 using namespace cv;
 using namespace std;
-
 
 extern "C" {
 
@@ -62,7 +57,6 @@ Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_initLoad(JNIEnv *env, jobject,
     const char *nativeString = env->GetStringUTFChars(haarfilePath, 0);
     face_detector.load(nativeString);
     env->ReleaseStringUTFChars(haarfilePath, nativeString);
-    LOGD("Method Description: %s", "loaded haar files...");
 }
 JNIEXPORT void JNICALL
 Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_faceDetection(JNIEnv *, jobject, jlong addrRgba) {
@@ -72,14 +66,170 @@ Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_faceDetection(JNIEnv *, jobjec
     cvtColor(mRgb, gray, COLOR_BGR2GRAY);
     vector<Rect> faces;
     //LOGD( "This is a number from JNI: %d", flag*2);
-    face_detector.detectMultiScale(gray, faces, 1.1, 1, 0, Size(50, 50), Size(300, 300));
+//    face_detector.detectMultiScale(gray, faces, 1.1, 1, 0, Size(50, 50), Size(300, 300));
     //LOGD( "This is a number from JNI: %d", flag*3);
     if (faces.empty()) return;
     for (int i = 0; i < faces.size(); i++) {
         rectangle(mRgb, faces[i], Scalar(255, 0, 0), 2, 8, 0);
-        LOGD("Face Detection : %s", "Found Face");
     }
 
+}
+
+JNIEXPORT void JNICALL
+Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_compressGlass(JNIEnv *, jobject, jlong addrFrame) {
+    Mat &mFrame = *(Mat *) addrFrame;
+    Mat mdstFrame;
+    mFrame.copyTo(mdstFrame);
+    int width = mFrame.cols;
+    int height = mFrame.rows;
+
+    float R;
+    float a, b;
+    float alpha = 0.75;
+    float K = pi / 2;
+
+    a = height / 2.0;
+    b = width / 2.0;
+    R = std::min(a, b);
+
+    Point Center(width / 2, height / 2);
+
+    float radius, r0, Dis, new_x, new_y;
+    float p, q, x1, y1, x0, y0;
+    float theta;
+
+    for (int y = 0; y < height; y++) {
+        for (int x = 0; x < width; x++) {
+            y0 = Center.y - y;
+            x0 = x - Center.x;
+            Dis = x0 * x0 + y0 * y0;
+            r0 = sqrt(Dis);
+            if (Dis < R * R) {
+                theta = atan(y0 / (x0 + 0.00001));
+                if (x0 < 0) theta = theta + pi;
+
+                radius = R * sin(r0 / R * K);
+                radius = (radius - r0) * (alpha) + r0;
+                new_x = radius * cos(theta);
+                new_y = radius * sin(theta);
+                new_x = Center.x + new_x;
+                new_y = Center.y - new_y;
+
+                if (new_x < 0) new_x = 0;
+                if (new_x >= width - 1) new_x = width - 2;
+                if (new_y < 0) new_y = 0;
+                if (new_y >= height - 1) new_y = height - 2;
+
+                x1 = (int) new_x;
+                y1 = (int) new_y;
+
+                p = new_x - x1;
+                q = new_y - y1;
+
+                for (int k = 0; k < 3; k++) {
+                    mFrame.at<Vec3b>(y, x)[k] = (1 - p) * (1 - q) * mdstFrame.at<Vec3b>(y1, x1)[k] +
+                                                (p) * (1 - q) * mdstFrame.at<Vec3b>(y1, x1 + 1)[k] +
+                                                (1 - p) * (q) * mdstFrame.at<Vec3b>(y1 + 1, x1)[k] +
+                                                (p) * (q) * mdstFrame.at<Vec3b>(y1 + 1, x1 + 1)[k];
+                }
+            }
+        }
+    }
+    mdstFrame.release();
+}
+JNIEXPORT void JNICALL
+Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_magnifyGlass(JNIEnv *, jobject, jlong addrFrame) {
+    Mat &mFrame = *(Mat *) addrFrame;
+    Mat mdstFrame;
+    mFrame.copyTo(mdstFrame);
+    int width = mFrame.cols;
+    int height = mFrame.rows;
+    Point center(width / 2, height / 2);
+    int R = sqrtf(width * width + height * height) / 4; //直接关系到放大的力度,与R成正比;
+    for (int y = 0; y < height; y++) {
+        uchar *img_p = mFrame.ptr<uchar>(y);//定义一个指针，指向第y列，从而可以访问行数据。
+        for (int x = 0; x < width; x++) {
+
+            int dis = norm(Point(x, y) - center);//获得当前点到中心点的距离
+            if (dis < R)//设置变化区间
+            {
+                int newX = (x - center.x) * dis / R + center.x;
+                int newY = (y - center.y) * dis / R + center.y;
+                img_p[3 * x] = mdstFrame.at<uchar>(newY, newX * 3);
+                img_p[3 * x + 1] = mdstFrame.at<uchar>(newY, newX * 3 + 1);
+                img_p[3 * x + 2] = mdstFrame.at<uchar>(newY, newX * 3 + 2);
+            }
+        }
+    }
+
+    mdstFrame.release();
+
+}
+
+double angle;
+int deltaI = 1;    //波浪周期;
+int A = 30;        //波浪振幅;
+
+JNIEXPORT void JNICALL
+Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_MultipleMagnifyGlass(JNIEnv *, jobject, jlong addrFrame, jint cx,
+                                                                       jint cy, jint tx, jint ty) {
+    Mat &mFrame = *(Mat *) addrFrame;
+    Mat mdstFrame;
+    mFrame.copyTo(mdstFrame);
+    int width = mFrame.cols;
+    int height = mFrame.rows;
+    angle = 0.0;
+    int sinHeight = abs(ty - cy);
+    int tlr = tx - cx > 0;
+//    int changeX;
+
+    for (int y = 0; y < height; y++) {
+//        if (tlr) {
+//            changeX = -A * sin(angle);
+//        } else {
+//            changeX = A * sin(angle);
+//        }
+        int dst = 10;
+        uchar *srcP = mdstFrame.ptr<uchar>(y);
+        uchar *imgP = mFrame.ptr<uchar>(y);
+        for (int x = 0; x < width; x++) {
+
+            int delta;
+            if (x < (width / 2)) {
+                delta = x / width * dst * sin((y / height) * pi);
+            } else {
+                delta = (1 - x / width) * dst * sin((y / height) * pi);
+            }
+//            imgP[3 * x] = srcP[3 * (x - delta)];
+//            imgP[3 * x + 1] = srcP[3 * (x - delta) + 1];
+//            imgP[3 * x + 2] = srcP[3 * (x - delta) + 2];
+
+
+            if (delta + x < width && delta + x > 0) {//正弦分布（-1,1）
+//                imgP[3 * x] = srcP[3 * (x + changeX)];
+//                imgP[3 * x + 1] = srcP[3 * (x + changeX) + 1];
+//                imgP[3 * x + 2] = srcP[3 * (x + changeX) + 2];
+
+                imgP[3 * x] = srcP[3 * (x - delta)];
+                imgP[3 * x + 1] = srcP[3 * (x - delta) + 1];
+                imgP[3 * x + 2] = srcP[3 * (x - delta) + 2];
+
+            } else if (x <= delta) {//每行开始和结束的空白区;
+                imgP[3 * x] = srcP[0];
+                imgP[3 * x + 1] = srcP[1];
+                imgP[3 * x + 2] = srcP[2];
+            } else if (x >= width - delta) {
+                imgP[3 * x] = srcP[3 * (width - 1)];
+                imgP[3 * x + 1] = srcP[3 * (width - 1) + 1];
+                imgP[3 * x + 2] = srcP[3 * (width - 1) + 2];
+            }
+        }
+
+        if (y >= cy && y <= ty) {
+            angle += ((double) deltaI) / sinHeight * pi;
+        }
+    }
+    mdstFrame.release();
 }
 
 JNIEXPORT void JNICALL
@@ -91,36 +241,29 @@ Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_segmentation(JNIEnv *, jobject
     cvtColor(src, src, COLOR_BGR2GRAY);
     Mat temp;
     temp = src;
-    LOGE("segmentation", "将图片转为灰度图");
 
     Mat edge;
     blur(src, edge, Size(3, 3));
     Canny(src, edge, 150, 100, 3);
     temp = edge;
-    LOGE("segmentation", "canny算子边缘检测");
 
     Mat element = getStructuringElement(MORPH_RECT, Size(3, 3));
     for (int i = 0; i < 3; ++i) {
         dilate(edge, edge, element);
     }
     temp = edge;
-    LOGE("segmentation", "膨胀操作, 填充边缘缝隙");
 
     for (int i = 0; i < 10; i++) // 填充10次
     {
         fillHole(edge, edge);
     }
 //    dst = edge;
-    LOGE("segmentation Holes填充图", "");
 
     inpaint(src, edge, dst, 5, INPAINT_TELEA);
-    LOGE("segmentation inpaint", "");
 
     edge.release();
     temp.release();
 }
-
-
 
 JNIEXPORT void JNICALL
 Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_beautySkinFilter(JNIEnv *, jobject, jlong addrsrc, jlong addrdst,
@@ -128,12 +271,10 @@ Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_beautySkinFilter(JNIEnv *, job
     bool flag = (bool) blur;
     Mat &src = *(Mat *) addrsrc;
     Mat &dst = *(Mat *) addrdst;
-    LOGD("Face Beauty : %s", "Call In");
     // 计算积分图
     Mat sum, sqrsum, ycrcb;
     cvtColor(src, ycrcb, COLOR_BGR2YCrCb);
     integral(src, sum, sqrsum, CV_32S, CV_32F);
-    LOGD("Face Beauty : %s", "积分图计算");
     int w = src.cols;
     int h = src.rows;
 
@@ -178,7 +319,6 @@ Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_beautySkinFilter(JNIEnv *, job
     sum.release();
     ycrcb.release();
     sqrsum.release();
-    LOGD("Face Beauty : %s", "局部均方差滤波");
 
     Mat blur_mask, blur_mask_f;
 
@@ -218,7 +358,6 @@ Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_beautySkinFilter(JNIEnv *, job
     clone.release();
     blur_mask.release();
     blur_mask_f.release();
-    LOGD("Face Beauty : %s", "权重混合");
 
     // 边缘提升
     Canny(src, mask, 150, 300, 3, true);
@@ -229,6 +368,6 @@ Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_beautySkinFilter(JNIEnv *, job
     if (flag) {
         GaussianBlur(dst, dst, Size(3, 3), 0);
     }
-    LOGD("Face Beauty : %s", "End Call");
 }
 }
+

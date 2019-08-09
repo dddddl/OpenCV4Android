@@ -13,6 +13,7 @@ import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
 import com.ddddl.opencvdemo.R
+import com.ddddl.opencvdemo.nativehelper.FaceHelper
 import com.ddddl.opencvdemo.ui.baidu.BodyUtil
 import com.ddddl.opencvdemo.utils.*
 import kotlinx.android.synthetic.main.activity_util.*
@@ -242,6 +243,24 @@ class UtilActivity : AppCompatActivity() {
                     loadBitmap(it)
                 }
             }
+            R.id.multiply -> {
+                FaceHelper().MultipleMagnifyGlass(
+                    src.nativeObjAddr,
+                    src.cols() / 4,
+                    src.rows() / 4,
+                    src.cols() / 2,
+                    src.rows() / 2
+                )
+                loadBitmap(src)
+            }
+            R.id.magnifyGlass -> {
+                FaceHelper().magnifyGlass(src.nativeObjAddr)
+                loadBitmap(src)
+            }
+            R.id.compressGlass -> {
+                FaceHelper().compressGlass(src.nativeObjAddr)
+                loadBitmap(src)
+            }
             R.id.matchTemplateDemo -> {
                 openAlbum(IMAGE_REQUEST_CODE_2)
             }
@@ -255,16 +274,17 @@ class UtilActivity : AppCompatActivity() {
                     loadBitmap(it)
                 }
             }
-            R.id.bodySeq -> {
-                Thread{
-                    val pathName = ImageSelectUtils.getRealPath(imageUri,this)
-                    val bodyBean = BodyUtil.bodySeg(pathName)
-                    val bodyBitmap = BodyUtil.convert(bodyBean?.labelmap!!,bitmap.width,bitmap.height,bitmap)
-                    runOnUiThread{
-                        iv.setImageBitmap(bodyBitmap)
-                    }
-                }.start()
-            }
+//            R.id.bodySeq -> {
+//                Thread {
+//                    val pathName = ImageSelectUtils.getRealPath(imageUri, this)
+//                    val bodyBean = BodyUtil.bodySeg(pathName)
+//                    val bodyBitmap = BodyUtil.convert(bodyBean?.labelmap!!, bitmap.width, bitmap.height, bitmap)
+//                    runOnUiThread {
+//                        iv.setImageBitmap(bodyBitmap)
+//                    }
+//                }.start()
+//            }
+
         }
 
         return super.onOptionsItemSelected(item)

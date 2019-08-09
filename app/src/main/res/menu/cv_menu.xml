@@ -6,4 +6,6 @@
     <item android:id="@+id/boxblur" android:title="boxblur"/>
     <item android:id="@+id/sobel" android:title="sobel"/>
     <item android:id="@+id/facceDetection" android:title="faceDetection"/>
+    <item android:id="@+id/magnifyGlass" android:title="凸透镜"/>
+    <item android:id="@+id/compressGlass" android:title="凹透镜"/>
 </menu>

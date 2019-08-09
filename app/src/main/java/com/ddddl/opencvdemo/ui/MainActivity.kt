@@ -10,6 +10,7 @@ import android.support.v4.app.ActivityCompat
 import android.widget.ArrayAdapter
 import android.widget.ListAdapter
 import com.ddddl.opencvdemo.R
+import com.ddddl.opencvdemo.mace.SegmentActivity
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,7 +21,7 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val strs = arrayOf("utils", "display", "face", "inpaint")
+    private val strs = arrayOf("utils", "display", "face", "inpaint", "mace", "哈哈镜")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,6 +41,12 @@ class MainActivity : AppCompatActivity() {
                 }
                 3 -> {
                     startActivity(Intent(this, InpaintActivity::class.java))
+                }
+                4 -> {
+                    startActivity(Intent(this, SegmentActivity::class.java))
+                }
+                5 -> {
+
                 }
             }
         }
