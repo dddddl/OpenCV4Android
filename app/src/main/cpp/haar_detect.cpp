@@ -12,7 +12,8 @@
 
 #define zoom 3 // 缩放因子, 将大图像缩小 n 倍显示
 #define pi 3.1415926
-
+#define  LOG_TAG    "PHOTO_FIX"
+#define  LOGE(...)  __android_log_print(ANDROID_LOG_ERROR,LOG_TAG,__VA_ARGS__)
 using namespace cv;
 using namespace std;
 
@@ -50,6 +51,7 @@ void fillHole(const Mat srcBw, Mat &dstBw) {
 
     dstBw = srcBw | (~cutImg);
 }
+
 
 CascadeClassifier face_detector;
 JNIEXPORT void JNICALL
@@ -178,57 +180,64 @@ Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_MultipleMagnifyGlass(JNIEnv *,
     mFrame.copyTo(mdstFrame);
     int width = mFrame.cols;
     int height = mFrame.rows;
-    angle = 0.0;
-    int sinHeight = abs(ty - cy);
-    int tlr = tx - cx > 0;
-//    int changeX;
+
+    int channel = mFrame.channels();
+    double r = 100;
+    // 平移方向矢量/模
+    double transVecX = tx - cx;
+    double transVecY = ty - cy;
+    double transVecModel = sqrt(transVecX * transVecX + transVecY * transVecY);
 
     for (int y = 0; y < height; y++) {
-//        if (tlr) {
-//            changeX = -A * sin(angle);
-//        } else {
-//            changeX = A * sin(angle);
-//        }
-        int dst = 10;
-        uchar *srcP = mdstFrame.ptr<uchar>(y);
-        uchar *imgP = mFrame.ptr<uchar>(y);
+        uchar *img_p = mFrame.ptr<uchar>(y);//定义一个指针，指向第y列，从而可以访问行数据。
         for (int x = 0; x < width; x++) {
+            //计算每个坐标点与触摸点之间的距离
+            float dx = x - cx;
+            float dy = y - cy;
+            float dd = dx * dx + dy * dy;
+            float d = sqrt(dd);
 
-            int delta;
-            if (x < (width / 2)) {
-                delta = x / width * dst * sin((y / height) * pi);
-            } else {
-                delta = (1 - x / width) * dst * sin((y / height) * pi);
+            if (d < r) {
+                //变形系数，扭曲度
+                double e = (r * r - dd) * (r * r - dd) / ((r * r - dd + transVecModel * transVecModel) *
+                                                          (r * r - dd + transVecModel * transVecModel));
+                double pullX = e * (tx - cx);
+                double pullY = e * (ty - cy);
+
+                double oriX = x - pullX;
+                double oriY = y - pullY;
+
+                int x1 = int(oriX);
+                int x2 = x1 + 1;
+                int y1 = int(oriY);
+                int y2 = y1 + 1;
+
+                double part1 = mdstFrame.at<uchar>(y1, x1) * (float(x2) - oriX) * (float(y2) - oriY);
+                double part2 = mdstFrame.at<uchar>(y1, x2) * (oriX - float(x1)) * (float(y2) - oriY);
+                double part3 = mdstFrame.at<uchar>(y2, x1) * (float(x2) - oriX) * (oriY - float(y1));
+                double part4 = mdstFrame.at<uchar>(y2, x2) * (oriX - float(x1)) * (oriY - float(y1));
+
+                double insertValue = part1 * part2 * part3 * part4;
+
+                LOGE("insertValue");
+
+
+//                mFrame.at<uchar>(y, x) = insertValue;
+
+//                for (int i = 0; i < channel; i++) {
+//
+//
+//                    img_p[3 * x] = mdstFrame.at<uchar>(newY, newX * 3);
+//                    img_p[3 * x + 1] = mdstFrame.at<uchar>(newY, newX * 3 + 1);
+//                    img_p[3 * x + 2] = mdstFrame.at<uchar>(newY, newX * 3 + 2);
+//
+//
+//
+//                }
             }
-//            imgP[3 * x] = srcP[3 * (x - delta)];
-//            imgP[3 * x + 1] = srcP[3 * (x - delta) + 1];
-//            imgP[3 * x + 2] = srcP[3 * (x - delta) + 2];
-
-
-            if (delta + x < width && delta + x > 0) {//正弦分布（-1,1）
-//                imgP[3 * x] = srcP[3 * (x + changeX)];
-//                imgP[3 * x + 1] = srcP[3 * (x + changeX) + 1];
-//                imgP[3 * x + 2] = srcP[3 * (x + changeX) + 2];
-
-                imgP[3 * x] = srcP[3 * (x - delta)];
-                imgP[3 * x + 1] = srcP[3 * (x - delta) + 1];
-                imgP[3 * x + 2] = srcP[3 * (x - delta) + 2];
-
-            } else if (x <= delta) {//每行开始和结束的空白区;
-                imgP[3 * x] = srcP[0];
-                imgP[3 * x + 1] = srcP[1];
-                imgP[3 * x + 2] = srcP[2];
-            } else if (x >= width - delta) {
-                imgP[3 * x] = srcP[3 * (width - 1)];
-                imgP[3 * x + 1] = srcP[3 * (width - 1) + 1];
-                imgP[3 * x + 2] = srcP[3 * (width - 1) + 2];
-            }
-        }
-
-        if (y >= cy && y <= ty) {
-            angle += ((double) deltaI) / sinHeight * pi;
         }
     }
+
     mdstFrame.release();
 }
 

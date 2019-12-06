@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout
+<RelativeLayout
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:tools="http://schemas.android.com/tools"
         xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -7,4 +7,22 @@
         android:layout_height="match_parent"
         tools:context=".ui.MirrorActivity">
 
-</android.support.constraint.ConstraintLayout>
+    <TextView
+            android:id="@+id/btn_reset"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:padding="10dp"
+            android:background="#e9e9e9"
+            android:textColor="#999999"
+            android:text="复原"
+    />
+    <com.ddddl.opencvdemo.view.MyPSView
+            android:id="@+id/myPSView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/btn_reset"
+            android:layout_marginTop="5dp"
+    />
+
+</RelativeLayout>

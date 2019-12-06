@@ -46,7 +46,7 @@ class MainActivity : AppCompatActivity() {
                     startActivity(Intent(this, SegmentActivity::class.java))
                 }
                 5 -> {
-
+                    startActivity(Intent(this, MirrorActivity::class.java))
                 }
             }
         }

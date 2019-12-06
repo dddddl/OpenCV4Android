@@ -2,7 +2,6 @@ package com.ddddl.opencvdemo.ui
 
 import android.app.Activity
 import android.content.Intent
-import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
@@ -12,9 +11,9 @@ import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
+import android.view.MotionEvent
 import com.ddddl.opencvdemo.R
 import com.ddddl.opencvdemo.nativehelper.FaceHelper
-import com.ddddl.opencvdemo.ui.baidu.BodyUtil
 import com.ddddl.opencvdemo.utils.*
 import kotlinx.android.synthetic.main.activity_util.*
 import org.opencv.android.Utils
@@ -24,6 +23,7 @@ import org.opencv.imgproc.Imgproc
 
 class UtilActivity : AppCompatActivity() {
 
+    private var srccc: Mat? = null
     private var imageUri: Uri? = null
     private val IMAGE_TYPE = "image/*"
     private val CV_TAG = "CV_TAG"
@@ -33,9 +33,34 @@ class UtilActivity : AppCompatActivity() {
     val IMAGE_REQUEST_CODE_1 = 0x103
     val IMAGE_REQUEST_CODE_2 = 0x104
 
+    var startX: Float = 0f;
+    var startY: Float = 0f;
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_util)
+
+        iv.setOnTouchListener { v, event ->
+
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    startX = event.x
+                    startY = event.y
+                }
+                MotionEvent.ACTION_UP -> {
+
+                    FaceHelper().MultipleMagnifyGlass(
+                        srccc!!.nativeObjAddr,
+                        startX.toInt(),
+                        startY.toInt(),
+                        event.x.toInt(),
+                        event.y.toInt()
+                    )
+                    loadBitmap(srccc!!)
+                }
+            }
+
+            return@setOnTouchListener true
+        }
 
         btn_open.setOnClickListener {
             openAlbum(IMAGE_REQUEST_CODE)
@@ -65,6 +90,8 @@ class UtilActivity : AppCompatActivity() {
                     contentResolver, imageUri
                 )
                 iv.setImageBitmap(bitmap)
+                srccc = Imgcodecs.imread(RealPathFromUriUtils.getRealPathFromUri(this, imageUri))
+
             } else if (requestCode == IMAGE_REQUEST_CODE_1) {
                 val imageUri = data?.data
                 val src = Imgcodecs.imread(RealPathFromUriUtils.getRealPathFromUri(this, imageUri))
@@ -110,7 +137,6 @@ class UtilActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
 
-        val src: Mat = Imgcodecs.imread(RealPathFromUriUtils.getRealPathFromUri(this, imageUri)) ?: return false
         when (item!!.itemId) {
             R.id.drawMat -> {
                 MatUtil.drawMat {
@@ -120,33 +146,33 @@ class UtilActivity : AppCompatActivity() {
                 }
             }
             R.id.cvtColor -> {
-                MatUtil.cvtColor(src) {
+                MatUtil.cvtColor(srccc!!) {
                     Utils.matToBitmap(it, bitmap)
                     iv.setImageBitmap(bitmap)
                 }
             }
             R.id.blurImage -> {
-                MatUtil.blurImage(src) {
+                MatUtil.blurImage(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.getMatByteByPixel -> {
-                MatUtil.getMatByteByPixel(src) {
+                MatUtil.getMatByteByPixel(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.getMatByteByRow -> {
-                MatUtil.getMatByteByRow(src) {
+                MatUtil.getMatByteByRow(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.getAllMatByte -> {
-                MatUtil.getAllMatByte(src) {
+                MatUtil.getAllMatByte(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.getBinaryImage -> {
-                MatUtil.getBinaryImage(src) {
+                MatUtil.getBinaryImage(srccc!!) {
                     val result = Mat()
                     val bitmap = Bitmap.createBitmap(it.cols(), it.rows(), Bitmap.Config.ARGB_8888)
                     Imgproc.cvtColor(it, result, Imgproc.COLOR_GRAY2RGBA)
@@ -156,22 +182,22 @@ class UtilActivity : AppCompatActivity() {
                 }
             }
             R.id.addMat -> {
-                MatUtil.addMat(src) {
+                MatUtil.addMat(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.subtractMat -> {
-                MatUtil.subtractMat(src) {
+                MatUtil.subtractMat(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.multiplyMat -> {
-                MatUtil.multiplyMat(src) {
+                MatUtil.multiplyMat(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.divideMat -> {
-                MatUtil.divideMat(src) {
+                MatUtil.divideMat(srccc!!) {
                     loadBitmap(it)
                 }
             }
@@ -184,93 +210,93 @@ class UtilActivity : AppCompatActivity() {
                 }
             }
             R.id.blur -> {
-                ImageProcess.blur(src) {
+                ImageProcess.blur(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.gaussianBlur -> {
-                ImageProcess.gaussianBlur(src) {
+                ImageProcess.gaussianBlur(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.medianBlur -> {
-                ImageProcess.medianBlur(src) {
+                ImageProcess.medianBlur(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.dilate -> {
-                ImageProcess.dilate(src) {
+                ImageProcess.dilate(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.erode -> {
-                ImageProcess.erode(src) {
+                ImageProcess.erode(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.pyrMeanShiftFiltering -> {
-                ImageProcess.pyrMeanShiftFiltering(src) {
+                ImageProcess.pyrMeanShiftFiltering(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.bilateralFilter -> {
-                ImageProcess.bilateralFilter(src) {
+                ImageProcess.bilateralFilter(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.edge -> {
-                ImageProcess.edge(src) {
+                ImageProcess.edge(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.houghLines -> {
-                ImageProcess.houghLines(src) {
+                ImageProcess.houghLines(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.houghCircle -> {
-                ImageProcess.houghCircle(src) {
+                ImageProcess.houghCircle(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.findContours -> {
-                ImageProcess.findContours(src) {
+                ImageProcess.findContours(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.displayHistogram -> {
-                ImageProcess.displayHistogram(src) {
+                ImageProcess.displayHistogram(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.multiply -> {
                 FaceHelper().MultipleMagnifyGlass(
-                    src.nativeObjAddr,
-                    src.cols() / 4,
-                    src.rows() / 4,
-                    src.cols() / 2,
-                    src.rows() / 2
+                    srccc!!.nativeObjAddr,
+                    srccc!!.cols() / 4,
+                    srccc!!.rows() / 4,
+                    srccc!!.cols() / 2,
+                    srccc!!.rows() / 2
                 )
-                loadBitmap(src)
+                loadBitmap(srccc!!)
             }
             R.id.magnifyGlass -> {
-                FaceHelper().magnifyGlass(src.nativeObjAddr)
-                loadBitmap(src)
+                FaceHelper().magnifyGlass(srccc!!.nativeObjAddr)
+                loadBitmap(srccc!!)
             }
             R.id.compressGlass -> {
-                FaceHelper().compressGlass(src.nativeObjAddr)
-                loadBitmap(src)
+                FaceHelper().compressGlass(srccc!!.nativeObjAddr)
+                loadBitmap(srccc!!)
             }
             R.id.matchTemplateDemo -> {
                 openAlbum(IMAGE_REQUEST_CODE_2)
             }
             R.id.harrisCornerDemo -> {
-                FeatureMatchUtil.harrisCornerDemo(src) {
+                FeatureMatchUtil.harrisCornerDemo(srccc!!) {
                     loadBitmap(it)
                 }
             }
             R.id.shiTomasicornerDemo -> {
-                FeatureMatchUtil.shiTomasicornerDemo(src) {
+                FeatureMatchUtil.shiTomasicornerDemo(srccc!!) {
                     loadBitmap(it)
                 }
             }
