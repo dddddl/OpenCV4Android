@@ -3,10 +3,12 @@ package com.ddddl.opencvdemo.ui
 import android.app.Activity
 import android.content.Intent
 import android.graphics.Bitmap
+import android.media.Image
 import android.net.Uri
 import android.os.Build
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.view.Menu
@@ -15,11 +17,16 @@ import android.view.MotionEvent
 import com.ddddl.opencvdemo.R
 import com.ddddl.opencvdemo.nativehelper.FaceHelper
 import com.ddddl.opencvdemo.utils.*
+import kotlinx.android.synthetic.main.activity_inpaint.*
 import kotlinx.android.synthetic.main.activity_util.*
+import kotlinx.android.synthetic.main.activity_util.iv
 import org.opencv.android.Utils
+import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.imgcodecs.Imgcodecs
 import org.opencv.imgproc.Imgproc
+import java.io.File
+import java.io.FileOutputStream
 
 class UtilActivity : AppCompatActivity() {
 
@@ -39,28 +46,28 @@ class UtilActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_util)
 
-        iv.setOnTouchListener { v, event ->
-
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    startX = event.x
-                    startY = event.y
-                }
-                MotionEvent.ACTION_UP -> {
-
-                    FaceHelper().MultipleMagnifyGlass(
-                        srccc!!.nativeObjAddr,
-                        startX.toInt(),
-                        startY.toInt(),
-                        event.x.toInt(),
-                        event.y.toInt()
-                    )
-                    loadBitmap(srccc!!)
-                }
-            }
-
-            return@setOnTouchListener true
-        }
+//        iv.setOnTouchListener { v, event ->
+//
+//            when (event.action) {
+//                MotionEvent.ACTION_DOWN -> {
+//                    startX = event.x
+//                    startY = event.y
+//                }
+//                MotionEvent.ACTION_UP -> {
+//
+//                    FaceHelper().MultipleMagnifyGlass(
+//                        srccc!!.nativeObjAddr,
+//                        startX.toInt(),
+//                        startY.toInt(),
+//                        event.x.toInt(),
+//                        event.y.toInt()
+//                    )
+//                    loadBitmap(srccc!!)
+//                }
+//            }
+//
+//            return@setOnTouchListener true
+//        }
 
         btn_open.setOnClickListener {
             openAlbum(IMAGE_REQUEST_CODE)
@@ -90,7 +97,9 @@ class UtilActivity : AppCompatActivity() {
                     contentResolver, imageUri
                 )
                 iv.setImageBitmap(bitmap)
-                srccc = Imgcodecs.imread(RealPathFromUriUtils.getRealPathFromUri(this, imageUri))
+                srccc = Imgcodecs.imread(
+                    RealPathFromUriUtils.getRealPathFromUri(this, imageUri)
+                )
 
             } else if (requestCode == IMAGE_REQUEST_CODE_1) {
                 val imageUri = data?.data
@@ -100,7 +109,8 @@ class UtilActivity : AppCompatActivity() {
                     return
                 }
                 if (imageUri != null) {
-                    val src1 = Imgcodecs.imread(RealPathFromUriUtils.getRealPathFromUri(this, imageUri))
+                    val src1 =
+                        Imgcodecs.imread(RealPathFromUriUtils.getRealPathFromUri(this, imageUri))
                     if (src1.empty()) {
                         Log.e(CV_TAG, "src is empty")
                         return
@@ -117,7 +127,8 @@ class UtilActivity : AppCompatActivity() {
                     return
                 }
                 if (imageUri != null) {
-                    val src1 = Imgcodecs.imread(RealPathFromUriUtils.getRealPathFromUri(this, imageUri))
+                    val src1 =
+                        Imgcodecs.imread(RealPathFromUriUtils.getRealPathFromUri(this, imageUri))
                     if (src1.empty()) {
                         Log.e(CV_TAG, "src is empty")
                         return
@@ -244,6 +255,56 @@ class UtilActivity : AppCompatActivity() {
                     loadBitmap(it)
                 }
             }
+            R.id.guidedFilter -> {
+//                val dst = Mat(srccc?.size(), srccc?.type()!!)
+//                FaceHelper().guidedFilter(srccc?.nativeObjAddr!!, dst.nativeObjAddr)
+//                val bm = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.ARGB_8888)
+//                val result = Mat()
+//                Imgproc.cvtColor(dst, result, Imgproc.COLOR_GRAY2RGB)
+//                Utils.matToBitmap(result, bm)
+//                runOnUiThread {
+//                    iv.setImageBitmap(bm)
+//                }
+//                srccc?.release()
+//                dst.release()
+//                result.release()
+                ImageProcess.guidedFilter(srccc!!) {
+                    loadBitmap(it)
+                }
+            }
+            R.id.nlmFilter -> {
+                ImageProcess.nlmFilter(srccc!!) {
+                    loadBitmap(it)
+                }
+            }
+            R.id.bm3dFilter -> {
+                val dst = Mat(srccc?.size(), CvType.CV_8U)
+                FaceHelper().bm3dFilter(srccc?.nativeObjAddr!!, dst.nativeObjAddr)
+                val result = Mat()
+                val bitmap = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.ARGB_8888)
+                Imgproc.cvtColor(dst, result, Imgproc.COLOR_GRAY2RGB)
+                Utils.matToBitmap(result, bitmap)
+                iv.setImageBitmap(bitmap)
+                result.release()
+            }
+            R.id.Fourier_Transform -> {
+//                ImageProcess.dftFilter(srccc!!) {
+//                    val bitmap = Bitmap.createBitmap(it.cols(), it.rows(), Bitmap.Config.ARGB_8888)
+//                    Imgproc.cvtColor(it, it, Imgproc.COLOR_GRAY2RGB)
+//                    Utils.matToBitmap(it, bitmap)
+//                    iv.setImageBitmap(bitmap)
+//                }
+                Imgproc.cvtColor(srccc,srccc,Imgproc.COLOR_BGRA2GRAY)
+                val dst = Mat.zeros(srccc?.size(), srccc?.type()!!)
+                FaceHelper().homoFilter(srccc?.nativeObjAddr!!, dst?.nativeObjAddr!!)
+                val result = Mat()
+                val bitmap = Bitmap.createBitmap(dst.cols(), dst.rows(), Bitmap.Config.ARGB_8888)
+                Imgproc.cvtColor(dst, result, Imgproc.COLOR_GRAY2RGB)
+                Utils.matToBitmap(result, bitmap)
+                iv.setImageBitmap(bitmap)
+                result.release()
+
+            }
             R.id.edge -> {
                 ImageProcess.edge(srccc!!) {
                     loadBitmap(it)
@@ -319,7 +380,7 @@ class UtilActivity : AppCompatActivity() {
     private fun loadBitmap(it: Mat) {
         val result = Mat()
         val bitmap = Bitmap.createBitmap(it.cols(), it.rows(), Bitmap.Config.ARGB_8888)
-        Imgproc.cvtColor(it, result, Imgproc.COLOR_BGRA2RGB)
+        Imgproc.cvtColor(it, result, Imgproc.COLOR_BGR2RGB)
         Utils.matToBitmap(result, bitmap)
         iv.setImageBitmap(bitmap)
         result.release()

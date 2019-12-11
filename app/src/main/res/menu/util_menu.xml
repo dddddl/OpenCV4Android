@@ -19,12 +19,16 @@
     <item android:id="@+id/addWeightMat" android:title="addWeightMat"/>
     <item android:id="@+id/bitwiseMat" android:title="bitwiseMat"/>
     <item android:id="@+id/blur" android:title="blur"/>
-    <item android:id="@+id/gaussianBlur" android:title="gaussianBlur"/>
-    <item android:id="@+id/medianBlur" android:title="medianBlur"/>
+    <item android:id="@+id/gaussianBlur" android:title="高斯滤波gaussianBlur"/>
+    <item android:id="@+id/medianBlur" android:title="中值滤波medianBlur"/>
     <item android:id="@+id/dilate" android:title="dilate"/>
     <item android:id="@+id/erode" android:title="erode"/>
-    <item android:id="@+id/pyrMeanShiftFiltering" android:title="pyrMeanShiftFiltering"/>
-    <item android:id="@+id/bilateralFilter" android:title="bilateralFilter"/>
+    <item android:id="@+id/pyrMeanShiftFiltering" android:title="均值偏移滤波pyrMeanShiftFiltering"/>
+    <item android:id="@+id/bilateralFilter" android:title="双边滤波bilateralFilter"/>
+    <item android:id="@+id/guidedFilter" android:title="引导滤波guidedFilter"/>
+    <item android:id="@+id/nlmFilter" android:title="非局部均值滤波NLM"/>
+    <item android:id="@+id/bm3dFilter" android:title="BM3D去噪算法"/>
+    <item android:id="@+id/Fourier_Transform" android:title="傅里叶变换"/>
     <item android:id="@+id/edge" android:title="edge"/>
     <item android:id="@+id/houghLines" android:title="houghLines"/>
     <item android:id="@+id/houghCircle" android:title="houghCircle"/>

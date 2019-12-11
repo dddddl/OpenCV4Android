@@ -9,6 +9,7 @@
 #include<vector>
 #include <string>
 #include <android/log.h>
+#include <include/bm3d.h>
 
 #define zoom 3 // 缩放因子, 将大图像缩小 n 倍显示
 #define pi 3.1415926
@@ -37,7 +38,6 @@ float get_block_sqrt_sum(Mat &sum, int x1, int y1, int x2, int y2, int i) {
     return var;
 }
 
-
 // 填充Holes
 void fillHole(const Mat srcBw, Mat &dstBw) {
     Size m_Size = srcBw.size();
@@ -55,7 +55,8 @@ void fillHole(const Mat srcBw, Mat &dstBw) {
 
 CascadeClassifier face_detector;
 JNIEXPORT void JNICALL
-Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_initLoad(JNIEnv *env, jobject, jstring haarfilePath) {
+Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_initLoad(JNIEnv *env, jobject,
+                                                           jstring haarfilePath) {
     const char *nativeString = env->GetStringUTFChars(haarfilePath, 0);
     face_detector.load(nativeString);
     env->ReleaseStringUTFChars(haarfilePath, nativeString);
@@ -78,7 +79,8 @@ Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_faceDetection(JNIEnv *, jobjec
 }
 
 JNIEXPORT void JNICALL
-Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_compressGlass(JNIEnv *, jobject, jlong addrFrame) {
+Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_compressGlass(JNIEnv *, jobject,
+                                                                jlong addrFrame) {
     Mat &mFrame = *(Mat *) addrFrame;
     Mat mdstFrame;
     mFrame.copyTo(mdstFrame);
@@ -173,7 +175,8 @@ int deltaI = 1;    //波浪周期;
 int A = 30;        //波浪振幅;
 
 JNIEXPORT void JNICALL
-Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_MultipleMagnifyGlass(JNIEnv *, jobject, jlong addrFrame, jint cx,
+Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_MultipleMagnifyGlass(JNIEnv *, jobject,
+                                                                       jlong addrFrame, jint cx,
                                                                        jint cy, jint tx, jint ty) {
     Mat &mFrame = *(Mat *) addrFrame;
     Mat mdstFrame;
@@ -199,8 +202,9 @@ Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_MultipleMagnifyGlass(JNIEnv *,
 
             if (d < r) {
                 //变形系数，扭曲度
-                double e = (r * r - dd) * (r * r - dd) / ((r * r - dd + transVecModel * transVecModel) *
-                                                          (r * r - dd + transVecModel * transVecModel));
+                double e = (r * r - dd) * (r * r - dd) /
+                           ((r * r - dd + transVecModel * transVecModel) *
+                            (r * r - dd + transVecModel * transVecModel));
                 double pullX = e * (tx - cx);
                 double pullY = e * (ty - cy);
 
@@ -212,10 +216,14 @@ Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_MultipleMagnifyGlass(JNIEnv *,
                 int y1 = int(oriY);
                 int y2 = y1 + 1;
 
-                double part1 = mdstFrame.at<uchar>(y1, x1) * (float(x2) - oriX) * (float(y2) - oriY);
-                double part2 = mdstFrame.at<uchar>(y1, x2) * (oriX - float(x1)) * (float(y2) - oriY);
-                double part3 = mdstFrame.at<uchar>(y2, x1) * (float(x2) - oriX) * (oriY - float(y1));
-                double part4 = mdstFrame.at<uchar>(y2, x2) * (oriX - float(x1)) * (oriY - float(y1));
+                double part1 =
+                        mdstFrame.at<uchar>(y1, x1) * (float(x2) - oriX) * (float(y2) - oriY);
+                double part2 =
+                        mdstFrame.at<uchar>(y1, x2) * (oriX - float(x1)) * (float(y2) - oriY);
+                double part3 =
+                        mdstFrame.at<uchar>(y2, x1) * (float(x2) - oriX) * (oriY - float(y1));
+                double part4 =
+                        mdstFrame.at<uchar>(y2, x2) * (oriX - float(x1)) * (oriY - float(y1));
 
                 double insertValue = part1 * part2 * part3 * part4;
 
@@ -242,7 +250,8 @@ Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_MultipleMagnifyGlass(JNIEnv *,
 }
 
 JNIEXPORT void JNICALL
-Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_segmentation(JNIEnv *, jobject, jlong addrsrc, jlong addrdst) {
+Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_segmentation(JNIEnv *, jobject, jlong addrsrc,
+                                                               jlong addrdst) {
 
     Mat &src = *(Mat *) addrsrc;
     Mat &dst = *(Mat *) addrdst;
@@ -275,7 +284,8 @@ Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_segmentation(JNIEnv *, jobject
 }
 
 JNIEXPORT void JNICALL
-Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_beautySkinFilter(JNIEnv *, jobject, jlong addrsrc, jlong addrdst,
+Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_beautySkinFilter(JNIEnv *, jobject, jlong addrsrc,
+                                                                   jlong addrdst,
                                                                    jfloat sigma, jboolean blur) {
     bool flag = (bool) blur;
     Mat &src = *(Mat *) addrsrc;
@@ -378,5 +388,111 @@ Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_beautySkinFilter(JNIEnv *, job
         GaussianBlur(dst, dst, Size(3, 3), 0);
     }
 }
+
+
+
+JNIEXPORT void JNICALL
+Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_bm3dFilter(JNIEnv *, jobject, jlong addrsrc,
+                                                             jlong addrdst) {
+
+    Mat &src = *(Mat *) addrsrc;
+    Mat &dst = *(Mat *) addrdst;
+
+    int sigma = 25;
+
+    //convert data type
+    Mat Pic(src.size(), CV_32FC1);
+    Mat Noisy(src.size(), CV_32FC1);
+    Mat Basic(src.size(), CV_32FC1);
+    Mat Denoised(src.size(), CV_32FC1);
+
+    uchar2float(src, Pic);
+    addNoise(sigma, Pic, Noisy);
+
+    //convert type for displaying
+    Mat basic(src.size(), CV_8U);
+    Mat noisy(src.size(), CV_8U);
+    Mat denoised(src.size(), CV_8U);
+
+    float2uchar(Noisy, noisy);
+
+//    imshow("origin", src);
+//    imshow("noisy", noisy);
+
+    //caiculate time used and psnr
+    runBm3d(sigma, Noisy, Basic, Denoised);//main denoising method
+//
+    float2uchar(Basic, basic);
+    float2uchar(Denoised, dst);
+//    imshow("basic", basic);
+//    imshow("denoised", denoised);
+}
+
+JNIEXPORT void JNICALL
+Java_com_ddddl_opencvdemo_nativehelper_FaceHelper_homoFilter(JNIEnv *, jobject, jlong addrsrc,
+                                                             jlong addrdst) {
+
+    Mat &src = *(Mat *) addrsrc;
+    Mat &dst = *(Mat *) addrdst;
+
+    src.convertTo(src, CV_64FC1);  //64位，对应double
+    dst.convertTo(dst, CV_64FC1);
+    //对数变换
+    for (int i = 0; i < src.rows; i++)
+    {
+        double* srcdata = src.ptr<double>(i);
+        for (int j = 0; j < src.cols; j++)
+        {
+            srcdata[j] = log(srcdata[j] + 0.0001);
+        }
+    }
+
+    //离散余弦变换
+    Mat mat_dct = Mat::zeros(src.rows, src.cols, CV_64FC1);
+    dct(src, mat_dct);
+
+    //滤波
+    Mat H;
+    double gammaH = 1.5;
+    double gammaL = 0.5;
+    double C = 1;
+    double d0 = (src.rows / 2)*(src.rows / 2) + (src.cols / 2)*(src.cols / 2);
+    double d2 = 0;
+    H = Mat::zeros(src.rows, src.cols, CV_64FC1);
+
+    double totalWeight = 0.0;
+    for (int i = 0; i < src.rows; i++)
+    {
+        double * dataH = H.ptr<double>(i);
+        for (int j = 0; j < src.cols; j++)
+        {
+            d2 = pow((i), 2.0) + pow((j), 2.0);
+            dataH[j] = (gammaH - gammaL)*(1 - exp(-C*d2 / d0)) + gammaL;
+            totalWeight += dataH[j];
+        }
+    }
+    H.ptr<double>(0)[0] = 1.1;
+    mat_dct = mat_dct.mul(H);
+
+    //逆变换
+    idct(mat_dct, dst);
+
+    //取指数
+    for (int i = 0; i < src.rows; i++)
+    {
+        double* srcdata = dst.ptr<double>(i);
+        double* dstdata = dst.ptr<double>(i);
+        for (int j = 0; j < src.cols; j++)
+        {
+            dstdata[j] = exp(srcdata[j]);
+        }
+    }
+    normalize(dst,dst,255,0,NORM_MINMAX);
+
+    //转换为8位灰度图像
+    dst.convertTo(dst, CV_8UC1);
+
+}
+
 }
 

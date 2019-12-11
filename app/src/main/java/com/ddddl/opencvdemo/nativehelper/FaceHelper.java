@@ -23,4 +23,8 @@ public class FaceHelper {
     public native int segmentation(long srcAddress, long dstAddress);
 
     public native int p2p(long srcAddress, long maskAddress, long dstAddress);
+
+    public native int bm3dFilter(long srcAddress, long dstAddress);
+
+    public native int homoFilter(long srcAddress, long dstAddress);
 }

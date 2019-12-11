@@ -16,7 +16,6 @@ object ImageProcess {
     fun blur(src: Mat, process: (Mat) -> Unit) {
         val dst = Mat()
         Imgproc.blur(src, dst, Size(5.0, 5.0), Point(-1.0, -1.0), Core.BORDER_DEFAULT)
-
         process.invoke(dst)
         src.release()
         dst.release()
@@ -24,8 +23,7 @@ object ImageProcess {
 
     fun gaussianBlur(src: Mat, process: (Mat) -> Unit) {
         val dst = Mat()
-        Imgproc.GaussianBlur(src, dst, Size(3.0, 3.0), 3.0, 3.0)
-
+        Imgproc.GaussianBlur(src, dst, Size(3.0, 3.0), 5.0, 5.0)
         process.invoke(dst)
         src.release()
         dst.release()
@@ -34,7 +32,7 @@ object ImageProcess {
     fun medianBlur(src: Mat, process: (Mat) -> Unit) {
         val dst = Mat()
         //ksize 为3、5的时候输入图像可以为浮点数或者整型，大于5只能为字节型图像，CV_8UC
-        Imgproc.medianBlur(src, dst, 5)
+        Imgproc.medianBlur(src, dst, 3)
         process.invoke(dst)
         src.release()
         dst.release()
@@ -80,10 +78,157 @@ object ImageProcess {
 
     fun bilateralFilter(src: Mat, process: (Mat) -> Unit) {
         val dst = Mat()
-        Imgproc.bilateralFilter(src, dst, 0, 150.0, 15.0)
+        Imgproc.bilateralFilter(src, dst, 0, 50.0, 5.0)
         process.invoke(dst)
         src.release()
         dst.release()
+    }
+
+
+    fun guidedFilter(src: Mat, process: (Mat) -> Unit) {
+
+        val p = src.clone()
+        src.convertTo(src, CvType.CV_32F)
+        p.convertTo(p, CvType.CV_32F)
+
+//        dst.convertTo(dst, CvType.CV_32F)
+        Core.divide(src, Scalar(255.0, 255.0, 255.0, 255.0), src)
+        Core.divide(p, Scalar(255.0, 255.0, 255.0, 255.0), p)
+
+        val r = 60
+        val s = (r / 4).toDouble()
+        val eps = 0.000001
+
+        val fastGuidedFilter = FastGuidedFilter()
+        val dst = fastGuidedFilter.filter(src, p, 2 * r + 1, eps, s, -1)
+        Core.multiply(dst, Scalar(255.0, 255.0, 255.0, 255.0), dst)
+        dst.convertTo(dst, CvType.CV_8UC4)
+
+        process.invoke(dst)
+        src.release()
+        p.release()
+        dst.release()
+    }
+
+    fun nlmFilter(src: Mat, process: (Mat) -> Unit) {
+
+        val dst = Mat()
+        Photo.fastNlMeansDenoisingColored(src, dst, 10.toFloat())
+
+        process.invoke(dst)
+        src.release()
+        dst.release()
+    }
+
+    fun dftFilter(singleChannel: Mat, process: (Mat) -> Unit) {
+
+        val image1 = Mat()
+        Imgproc.cvtColor(singleChannel, image1, Imgproc.COLOR_BGRA2GRAY)
+
+        image1.convertTo(image1, CvType.CV_64FC1)
+
+        val m = Core.getOptimalDFTSize(image1.rows())
+        val n = Core.getOptimalDFTSize(image1.cols())
+
+
+        val padded = Mat(Size(n.toDouble(), m.toDouble()), CvType.CV_64FC1)
+        Core.copyMakeBorder(
+            image1, padded, 0, m - singleChannel.rows(), 0,
+            n - singleChannel.cols(), Core.BORDER_CONSTANT
+        )
+
+        val planes = ArrayList<Mat>()
+        planes.add(padded)
+        planes.add(Mat.zeros(padded.rows(), padded.cols(), CvType.CV_64FC1))
+
+        val complexI = Mat.zeros(padded.rows(), padded.cols(), CvType.CV_64FC2)
+
+        val complexI2 = Mat
+            .zeros(padded.rows(), padded.cols(), CvType.CV_64FC2)
+
+        Core.merge(planes, complexI) // Add to the expanded another plane with
+        // zeros
+
+        Core.dft(complexI, complexI2) // this way the result may fit in the
+        // source matrix
+
+        // compute the magnitude and switch to logarithmic scale
+        // => log(1 + sqrt(Re(DFT(I))^2 + Im(DFT(I))^2))
+        Core.split(complexI2, planes) // planes[0] = Re(DFT(I), planes[1] =
+        // Im(DFT(I))
+
+        val mag = Mat(planes[0].size(), planes[0].type())
+
+        Core.magnitude(planes[0], planes[1], mag)// planes[0]
+        // =
+        // magnitude
+
+        val magI2 = Mat(mag.size(), mag.type())
+        val magI3 = Mat(mag.size(), mag.type())
+        var magI4 = Mat(mag.size(), mag.type())
+        val magI5 = Mat(mag.size(), mag.type())
+
+        Core.add(
+            mag, Mat.ones(padded.rows(), padded.cols(), CvType.CV_64FC1),
+            magI2
+        ) // switch to logarithmic scale
+        Core.log(magI2, magI3)
+
+        val crop = Mat(
+            magI3, Rect(
+                0, 0, magI3.cols() and -2,
+                magI3.rows() and -2
+            )
+        )
+
+        magI4 = crop.clone()
+
+        // rearrange the quadrants of Fourier image so that the origin is at the
+        // image center
+        val cx = magI4.cols() / 2
+        val cy = magI4.rows() / 2
+
+        val q0Rect = Rect(0, 0, cx, cy)
+        val q1Rect = Rect(cx, 0, cx, cy)
+        val q2Rect = Rect(0, cy, cx, cy)
+        val q3Rect = Rect(cx, cy, cx, cy)
+
+        val q0 = Mat(magI4, q0Rect) // Top-Left - Create a ROI per quadrant
+        val q1 = Mat(magI4, q1Rect) // Top-Right
+        val q2 = Mat(magI4, q2Rect) // Bottom-Left
+        val q3 = Mat(magI4, q3Rect) // Bottom-Right
+
+        val tmp = Mat() // swap quadrants (Top-Left with Bottom-Right)
+        q0.copyTo(tmp)
+        q3.copyTo(q0)
+        tmp.copyTo(q3)
+
+        q1.copyTo(tmp) // swap quadrant (Top-Right with Bottom-Left)
+        q2.copyTo(q1)
+        tmp.copyTo(q2)
+
+        Core.normalize(magI4, magI5, 0.0, 255.0, Core.NORM_MINMAX)
+
+        val mgaI6 = Mat(magI5.size(), CvType.CV_8UC1)
+
+        magI5.convertTo(mgaI6, CvType.CV_8UC1)
+
+        process.invoke(mgaI6)
+        singleChannel.release()
+
+
+        //逆变换
+//        Core.idft(complexI2, complexI2)
+//        val restoredImage = Mat()
+//        Core.split(complexI2, planes)
+//        Core.normalize(planes.get(0), restoredImage, 0.0, 255.0, Core.NORM_MINMAX)
+//
+//        val mgaI7 = Mat(restoredImage.size(), CvType.CV_8UC1)
+//
+//        restoredImage.convertTo(mgaI7, CvType.CV_8UC1)
+//        process.invoke(mgaI7)
+
+
     }
 
     fun edge(src: Mat, process: (Mat) -> Unit) {

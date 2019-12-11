@@ -48,6 +48,7 @@ add_library(
         SHARED
         src/main/cpp/haar_detect.cpp
         src/main/cpp/photo_fix.cpp
+        src/main/cpp/bm3d.cpp
 )
 
 #add_library( # Sets the name of the library.
